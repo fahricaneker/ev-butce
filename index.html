@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kişisel CFO: Akıllı Analiz</title>
+    <title>Kişisel CFO PRO - Final</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -14,24 +14,24 @@
         }
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-size: 13px; }
-        .container { max-width: 1450px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         .grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; }
         .card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
         .card h3 { margin: 0 0 15px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--info); letter-spacing: 1px; }
         .net-worth { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 10px; }
         
-        /* AI Analiz Kutusu Stili */
         .ai-box { background: rgba(59, 130, 246, 0.1); border: 1px solid var(--info); border-radius: 12px; padding: 15px; }
-        .ai-status { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px; font-size: 12px; }
         .ai-msg { line-height: 1.6; color: #e2e8f0; font-size: 12.5px; }
-        .ai-alert { color: var(--danger); font-weight: 600; }
 
         input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; }
         button { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
         .val-inc { color: var(--success); } .val-exp { color: var(--danger); }
         
-        @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
+        .cat-badge { background: var(--border); padding: 4px 8px; border-radius: 8px; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; margin: 2px; }
+        .cat-del { cursor: pointer; color: var(--danger); font-weight: bold; }
+        
+        @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -51,40 +51,45 @@
             </div>
 
             <div class="card">
-                <h3>🤖 CFO ANALİZ RAPORU</h3>
-                <div class="ai-box">
-                    <div id="aiStatus" class="ai-status">
-                        <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></span>
-                        SİSTEM AKTİF
-                    </div>
-                    <div id="aiReport" class="ai-msg">Veri girişi yapıldığında gerçek zamanlı analiz burada görünecek.</div>
+                <h3>🏷️ KATEGORİ EKLE</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="newCatName" placeholder="Kategori Adı..." style="margin:0">
+                    <select id="newCatType" style="margin:0; width: 80px;">
+                        <option value="expense">Gider</option>
+                        <option value="income">Gelir</option>
+                    </select>
+                    <button onclick="addCustomCategory()" style="width: 50px;">+</button>
                 </div>
+                <div id="catListDisplay"></div>
             </div>
 
             <div class="card">
-                <h3>📈 HARCAMA DAĞILIMI</h3>
-                <canvas id="mainChart"></canvas>
+                <h3>🤖 CFO ANALİZ RAPORU</h3>
+                <div class="ai-box">
+                    <div id="aiReport" class="ai-msg">Veri girişi bekleniyor...</div>
+                </div>
             </div>
         </div>
 
         <div class="col">
             <div class="card">
-                <h3>💳 YENİ İŞLEM</h3>
+                <h3>💳 YENİ İŞLEM GİRİŞİ</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <input type="number" id="amount" placeholder="Tutar (₺)">
-                    <select id="type">
+                    <select id="transType" onchange="updateCategoryDropdown()">
                         <option value="expense">Gider / Borç Ödeme (-)</option>
                         <option value="income">Gelir (+)</option>
                     </select>
                 </div>
-                <select id="categorySelect"></select>
-                <input type="text" id="note" placeholder="Not (Opsiyonel)">
+                <select id="categorySelect">
+                    </select>
+                <input type="text" id="note" placeholder="Açıklama">
                 <input type="date" id="date">
                 <button onclick="addTransaction()">KAYDET</button>
             </div>
 
             <div class="card">
-                <h3>📜 SON İŞLEMLER</h3>
+                <h3>📜 İŞLEM GEÇMİŞİ</h3>
                 <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
             </div>
         </div>
@@ -101,7 +106,7 @@
             </div>
 
             <div class="card" style="border-top: 3px solid var(--success);">
-                <h3>💎 VARLIKLAR</h3>
+                <h3>💎 VARLIKLAR / YATIRIM</h3>
                 <div style="display: flex; gap: 5px; margin-bottom:10px;">
                     <input type="text" id="invName" placeholder="Varlık" style="margin:0">
                     <input type="number" id="invVal" placeholder="₺" style="margin:0; width: 80px;">
@@ -109,27 +114,62 @@
                 </div>
                 <div id="investmentList"></div>
             </div>
+
+            <div class="card">
+                <h3>📊 GİDER DAĞILIMI</h3>
+                <canvas id="mainChart"></canvas>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem("cfo_v3_logic")) || {
+    let db = JSON.parse(localStorage.getItem("cfo_final_pro")) || {
         transactions: [],
-        categories: ["Maaş", "Market", "Kira", "Fatura", "Eğlence"],
+        categories: {
+            income: ["Maaş", "Freelance", "Kira Geliri", "Satış"],
+            expense: ["Market", "Fatura", "Kira", "Eğlence", "Ulaşım"]
+        },
         investments: [],
         debts: []
     };
 
     let chart;
-    function save() { localStorage.setItem("cfo_v3_logic", JSON.stringify(db)); }
+    function save() { localStorage.setItem("cfo_final_pro", JSON.stringify(db)); }
+
+    function addCustomCategory() {
+        const name = document.getElementById('newCatName').value.trim();
+        const type = document.getElementById('newCatType').value;
+        if(name && !db.categories[type].includes(name)) {
+            db.categories[type].push(name);
+            document.getElementById('newCatName').value = "";
+            save(); render();
+        }
+    }
+
+    function removeCategory(type, name) {
+        db.categories[type] = db.categories[type].filter(c => c !== name);
+        save(); render();
+    }
+
+    function updateCategoryDropdown() {
+        const type = document.getElementById('transType').value;
+        const select = document.getElementById('categorySelect');
+        let html = db.categories[type].map(c => `<option value="${c}">${c}</option>`).join('');
+        
+        if(type === 'expense') {
+            let debtOptions = db.debts.map(d => `<option value="BORÇ: ${d.name}">ÖDEME: ${d.name}</option>`).join('');
+            html += `<optgroup label="Borçlar">${debtOptions}</optgroup>`;
+        }
+        select.innerHTML = html;
+    }
 
     function addDebt() {
         const name = document.getElementById('debtName').value.trim();
         const amt = Number(document.getElementById('debtAmt').value);
         if(name && amt) {
-            db.debts.push({ id: Date.now(), name, total: amt, remaining: amt });
-            render(); save();
+            db.debts.push({ id: Date.now(), name, remaining: amt });
+            save(); render();
             document.getElementById('debtName').value = ""; document.getElementById('debtAmt').value = "";
         }
     }
@@ -137,55 +177,61 @@
     function addInvestment() {
         const name = document.getElementById('invName').value.trim();
         const val = Number(document.getElementById('invVal').value);
-        if(name && val) { db.investments.push({ id: Date.now(), name, val }); render(); save(); }
+        if(name && val) {
+            db.investments.push({ id: Date.now(), name, val });
+            save(); render();
+            document.getElementById('invName').value = ""; document.getElementById('invVal').value = "";
+        }
     }
 
     function addTransaction() {
         const amt = Number(document.getElementById('amount').value);
+        const type = document.getElementById('transType').value;
         const cat = document.getElementById('categorySelect').value;
-        const type = document.getElementById('type').value;
         const date = document.getElementById('date').value;
         const note = document.getElementById('note').value;
 
-        if(!amt || !date) return alert("Hata: Tutar ve tarih gerekli.");
+        if(!amt || !date) return alert("Hata: Tutar ve tarih girilmelidir.");
 
-        // Borçtan Düşme Mantığı
         if(type === 'expense' && cat.startsWith("BORÇ: ")) {
             const dName = cat.replace("BORÇ: ", "");
             const idx = db.debts.findIndex(d => d.name === dName);
             if(idx !== -1) db.debts[idx].remaining -= amt;
         }
 
-        db.transactions.unshift({ id: Date.now(), amt, cat, type, date, note });
-        render(); save();
+        db.transactions.unshift({ id: Date.now(), amt, type, cat, date, note });
+        save(); render();
         document.getElementById('amount').value = "";
     }
 
     function render() {
-        // Kategorileri güncelle (Borçları içine dahil et)
-        const catSelect = document.getElementById('categorySelect');
-        let catHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-        let debtCats = db.debts.map(d => `<option value="BORÇ: ${d.name}">Borç Ödeme: ${d.name}</option>`).join('');
-        catSelect.innerHTML = catHTML + `<optgroup label="Borçlar">` + debtCats + `</optgroup>`;
+        updateCategoryDropdown();
+        
+        // Kategori Listesini Görüntüle
+        let catHTML = "<b>Gelir:</b><br>";
+        db.categories.income.forEach(c => catHTML += `<span class="cat-badge">${c} <span class="cat-del" onclick="removeCategory('income','${c}')">×</span></span>`);
+        catHTML += "<br><br><b>Gider:</b><br>";
+        db.categories.expense.forEach(c => catHTML += `<span class="cat-badge">${c} <span class="cat-del" onclick="removeCategory('expense','${c}')">×</span></span>`);
+        document.getElementById('catListDisplay').innerHTML = catHTML;
 
-        let income = 0, expense = 0, debtRem = 0, invTotal = 0, debtPaymentTotal = 0;
-        let catData = {};
+        let incTotal = 0, expTotal = 0, debtRem = 0, invTotal = 0, dPay = 0;
+        let catStats = {};
 
-        // Borç Render
+        // Borçlar
         const dList = document.getElementById('debtList'); dList.innerHTML = "";
         db.debts.forEach(d => {
             debtRem += d.remaining;
-            dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="${d.remaining <= 0 ? 'val-inc' : 'val-exp'}">${d.remaining.toLocaleString()} ₺</span></div>`;
+            dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="val-exp">${d.remaining.toLocaleString()} ₺</span></div>`;
         });
 
-        // İşlemler ve Kategori Grafiği Hazırlığı
+        // İşlemler
         const hList = document.getElementById('historyList'); hList.innerHTML = "";
         db.transactions.forEach(t => {
-            if(t.type === 'income') income += t.amt;
+            if(t.type === 'income') incTotal += t.amt;
             else {
-                expense += t.amt;
-                catData[t.cat] = (catData[t.cat] || 0) + t.amt;
-                if(t.cat.startsWith("BORÇ: ")) debtPaymentTotal += t.amt;
+                expTotal += t.amt;
+                catStats[t.cat] = (catStats[t.cat] || 0) + t.amt;
+                if(t.cat.startsWith("BORÇ: ")) dPay += t.amt;
             }
             hList.innerHTML += `<div class="list-item"><div><b>${t.cat}</b><br><small>${t.date}</small></div><span class="val-${t.type==='income'?'inc':'exp'}">${t.amt.toLocaleString()} ₺</span></div>`;
         });
@@ -197,69 +243,35 @@
             iList.innerHTML += `<div class="list-item"><span>${i.name}</span><span class="val-inc">${i.val.toLocaleString()} ₺</span></div>`;
         });
 
-        const netWorth = (income + invTotal) - (expense + debtRem);
-        document.getElementById('netWorthDisplay').textContent = netWorth.toLocaleString() + " ₺";
-        document.getElementById('assetLiabInfo').innerHTML = `Varlıklar: ${ (income + invTotal).toLocaleString() } ₺ | Borçlar: ${debtRem.toLocaleString()} ₺`;
+        const net = (incTotal + invTotal) - (expTotal + debtRem);
+        document.getElementById('netWorthDisplay').textContent = net.toLocaleString() + " ₺";
+        document.getElementById('assetLiabInfo').innerHTML = `Toplam Varlık: ${(incTotal+invTotal).toLocaleString()} ₺ | Borç Yükü: ${debtRem.toLocaleString()} ₺`;
 
-        updateChart(catData);
-        runDeepAI(income, expense, debtRem, debtPaymentTotal, invTotal);
+        updateChart(catStats);
+        runAI(incTotal, expTotal, debtRem, dPay);
     }
 
-    // --- GERÇEKÇİ ANALİZ MOTORU ---
-    function runDeepAI(inc, exp, dRem, dPay, inv) {
-        const report = document.getElementById('aiReport');
-        let analysis = "";
-
-        if(inc === 0 && exp === 0) return;
-
-        // 1. Nakit Akışı Analizi
-        let flow = inc - exp;
-        if(flow < 0) analysis += `⚠️ <b>Ciddi Nakit Açığı:</b> Bu ay gelirinizden ${Math.abs(flow).toLocaleString()} ₺ daha fazla harcadınız. Acilen "İstek" harcamalarını kısıp bütçeyi dengelemelisiniz. <br><br>`;
-        else analysis += `✅ <b>Pozitif Akış:</b> Harcamalardan sonra elinizde ${flow.toLocaleString()} ₺ kalıyor. <br><br>`;
-
-        // 2. Borç Analizi
-        if(dRem > 0) {
-            let debtRatio = (dPay / inc) * 100;
-            if(inc > 0) {
-                analysis += `🔍 <b>Borç Durumu:</b> Gelirinizin %${debtRatio.toFixed(1)}'ini borç ödemeye ayırıyorsunuz. `;
-                if(debtRatio > 40) analysis += `<span class="ai-alert">Bu oran çok yüksek! Finansal özgürlüğünüz risk altında.</span> `;
-            }
-            
-            if(dPay > 0) {
-                let monthsLeft = Math.ceil(dRem / dPay);
-                analysis += `Mevcut ödeme hızıyla borçlarınız <b>${monthsLeft} ay</b> içinde tamamen bitecek. `;
-            }
-            analysis += "<br><br>";
+    function runAI(inc, exp, dRem, dPay) {
+        let msg = "";
+        if(inc > 0) {
+            let saveRate = ((inc - exp) / inc) * 100;
+            msg += `💰 Gelirinizin <b>%${saveRate.toFixed(1)}</b> kadarını biriktiriyorsunuz. `;
+            if(saveRate < 10) msg += "Tasarruf oranınız düşük, harcamaları gözden geçirin. ";
         }
-
-        // 3. Yatırım ve Güvenlik Marjı
-        let emergencyFund = inv / (exp || 1);
-        if(inv > 0) {
-            analysis += `💎 <b>Varlık Analizi:</b> Mevcut yatırımlarınız, hiç geliriniz olmasa bile sizi <b>${emergencyFund.toFixed(1)} ay</b> boyunca aynı standartta yaşatabilir. `;
-            if(emergencyFund < 3) analysis += "Acil durum fonunuzu 6 aya tamamlamaya çalışın.";
+        if(dRem > 0 && dPay > 0) {
+            let months = Math.ceil(dRem / dPay);
+            msg += `<br><br>📉 Mevcut ödeme hızıyla borçlarınız <b>${months} ay</b> sonra bitecek. `;
         }
-
-        report.innerHTML = analysis || "Verileriniz analiz ediliyor, harcama yaptıkça rapor detaylanacak.";
+        document.getElementById('aiReport').innerHTML = msg || "Henüz analiz için yeterli veri yok.";
     }
 
     function updateChart(data) {
         const ctx = document.getElementById('mainChart').getContext('2d');
         if(chart) chart.destroy();
-        chart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    data: Object.values(data),
-                    backgroundColor: ['#4361ee', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
-                    borderWidth: 0
-                }]
-            },
-            options: { plugins: { legend: { display: false } } }
-        });
+        chart = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#4361ee', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } });
     }
 
-    function clearAll() { if(confirm("Tüm kayıtlar silinecek. Emin misiniz?")) { localStorage.clear(); location.reload(); } }
+    function clearAll() { if(confirm("Sıfırlansın mı?")) { localStorage.clear(); location.reload(); } }
     document.getElementById('date').valueAsDate = new Date();
     render();
 </script>
