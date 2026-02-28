@@ -3,373 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ev Bütçe Ultra PRO</title>
+    <title>Ev Bütçe Ultra PRO: Finansal Zeka</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4361ee; --secondary: #3f37c9; --success: #4cc9f0;
-            --danger: #f72585; --warning: #ff9f1c; --bg: #f8f9fc;
-            --card-bg: #ffffff; --text: #2b2d42; --border: #edf2f4;
+            --primary: #4361ee; --success: #4cc9f0; --danger: #f72585; 
+            --warning: #ff9f1c; --bg: #0b0f1a; --card: #161c2d;
+            --border: #2d334a; --text: #f8fafc; --text-dim: #94a3b8;
         }
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; transition: all 0.2s ease; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-size: 14px; }
+        .container { max-width: 1400px; margin: 0 auto; }
         
-        /* Dashboard Grid */
-        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid var(--border); }
-        .stat-card h4 { margin: 0; font-size: 13px; color: #8d99ae; text-transform: uppercase; letter-spacing: 1px; }
-        .stat-card p { margin: 10px 0 0; font-size: 24px; font-weight: 700; }
+        /* Layout */
+        .grid { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; }
+        @media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 
-        /* Ana Bölümler */
-        .grid-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+        /* Card Styles */
+        .card { background: var(--card); border-radius: 20px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .card h3 { margin: 0 0 15px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--success); letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
 
-        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
-        h3 { margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        /* Dashboard Stats */
+        .net-worth { font-size: 32px; font-weight: 800; color: #fff; margin: 10px 0; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; }
+        .stat-label { font-size: 11px; color: var(--text-dim); display: block; }
+        .stat-val { font-size: 16px; font-weight: 700; margin-top: 5px; display: block; }
 
-        /* Formlar */
-        .form-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
-        input, select { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 10px; outline: none; background: #fefefe; font-size: 14px; min-width: 140px; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
-        button { padding: 12px 20px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-primary:hover { background: var(--secondary); transform: translateY(-1px); }
+        /* Forms */
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
+        input, select { width: 100%; padding: 12px; background: #0b0f1a; border: 1px solid var(--border); border-radius: 10px; color: #fff; outline: none; }
+        input:focus { border-color: var(--primary); }
+        button { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; transition: 0.3s; }
+        button:hover { opacity: 0.8; transform: translateY(-2px); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); margin-top: 10px; }
 
-        /* Liste Tasarımı */
-        .transaction-list { max-height: 400px; overflow-y: auto; padding-right: 5px; }
-        .t-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); border-radius: 8px; }
-        .t-item:hover { background: #fcfcfd; }
-        .t-info { display: flex; flex-direction: column; }
-        .t-info small { color: #8d99ae; font-size: 11px; }
-        .t-amount { font-weight: 700; font-size: 15px; }
-        .income-text { color: #2ecc71; }
-        .expense-text { color: var(--danger); }
-        .delete-btn { color: #bdc3c7; cursor: pointer; margin-left: 10px; font-size: 18px; }
-        .delete-btn:hover { color: var(--danger); }
+        /* List Items */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dotted var(--border); }
+        .list-item:last-child { border: none; }
+        .item-main { display: flex; flex-direction: column; }
+        .item-title { font-weight: 600; font-size: 13px; }
+        .item-sub { font-size: 11px; color: var(--text-dim); }
+        .val-inc { color: var(--success); }
+        .val-exp { color: var(--danger); }
 
-        /* Limit Bar */
-        .limit-item { margin-bottom: 15px; }
-        .limit-header { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; }
-        .progress-bg { background: #eee; height: 8px; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0; }
+        /* AI & Health Bar */
+        .health-circle { width: 80px; height: 80px; border-radius: 50%; border: 5px solid var(--success); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; margin: 0 auto 15px; }
+        .ai-box { background: linear-gradient(45deg, #1e293b, #0b0f1a); border-left: 4px solid var(--primary); padding: 15px; font-style: italic; font-size: 13px; color: #cbd5e1; }
 
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { padding: 8px 15px; background: #eee; border-radius: 20px; font-size: 12px; cursor: pointer; }
-        .tab-btn.active { background: var(--primary); color: white; }
+        /* Progress Bar */
+        .progress-w { background: #0b0f1a; height: 6px; border-radius: 10px; margin-top: 8px; }
+        .progress-f { height: 100%; background: var(--success); border-radius: 10px; width: 0%; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h2 style="margin:0;">🚀 Ev Bütçe <span style="color:var(--primary)">Ultra PRO</span></h2>
-        <div id="currentMonthDisplay" style="font-weight: 600; color: var(--primary);"></div>
-    </div>
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <div>
+            <h1 style="margin:0; font-size: 22px; letter-spacing: -1px;">ULTRA <span style="color:var(--primary)">FINANS PRO</span></h1>
+            <span id="currentDate" style="color:var(--text-dim); font-size: 12px;"></span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-outline" onclick="exportJSON()" style="padding: 8px 15px; width: auto; font-size: 12px;">YEDEKLE</button>
+            <button class="btn-outline" onclick="importJSON()" style="padding: 8px 15px; width: auto; font-size: 12px;">YÜKLE</button>
+        </div>
+    </header>
 
-    <div class="dashboard">
-        <div class="stat-card">
-            <h4>Toplam Bakiye</h4>
-            <p id="totalBalance">0 ₺</p>
-        </div>
-        <div class="stat-card">
-            <h4>Bu Ay Gider</h4>
-            <p id="monthExpense" style="color: var(--danger);">0 ₺</p>
-        </div>
-        <div class="stat-card">
-            <h4>Aylık Tasarruf</h4>
-            <p id="monthSaving" style="color: #2ecc71;">0 ₺</p>
-        </div>
-    </div>
-
-    <div class="grid-layout">
-        <div class="main-content">
+    <div class="grid">
+        
+        <div class="col">
             <div class="card">
-                <h3>💰 Yeni İşlem</h3>
-                <div class="form-group">
+                <h3>🤖 AI DANIŞMAN</h3>
+                <div id="aiAdvice" class="ai-box">Analiz için veri girişi yapın...</div>
+            </div>
+
+            <div class="card">
+                <h3>🩺 FINANSAL SAĞLIK</h3>
+                <div class="health-circle" id="healthScore">0</div>
+                <div id="healthStatus" style="text-align: center; font-weight: 600; font-size: 12px;">Analiz Bekleniyor</div>
+            </div>
+
+            <div class="card">
+                <h3>🚀 NET VARLIK (NET WORTH)</h3>
+                <div class="net-worth" id="netWorthDisplay">0 ₺</div>
+                <div class="stat-grid">
+                    <div class="stat-box"><span class="stat-label">Varlıklar</span><span id="totalAssets" class="stat-val val-inc">0</span></div>
+                    <div class="stat-box"><span class="stat-label">Borçlar</span><span id="totalLiabilities" class="stat-val val-exp">0</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>💎 YATIRIM PORTFÖYÜ</h3>
+                <div class="input-group">
+                    <input type="text" id="invName" placeholder="Varlık (Örn: Altın, THY)">
+                    <input type="number" id="invVal" placeholder="Anlık Değer (₺)" style="margin-top:5px">
+                    <button onclick="addInvestment()" style="margin-top:10px; background:var(--success)">EKLE</button>
+                </div>
+                <div id="investmentList"></div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card">
+                <h3>💳 İŞLEM MERKEZİ</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
                     <input type="number" id="amount" placeholder="Tutar">
                     <select id="type">
-                        <option value="expense">Gider (-)</option>
-                        <option value="income">Gelir (+)</option>
+                        <option value="expense">Gider</option>
+                        <option value="income">Gelir</option>
                     </select>
-                    <input type="text" id="category" placeholder="Kategori (Market, Kira...)" list="categoryList">
-                    <datalist id="categoryList"></datalist>
-                    <input type="date" id="date">
-                    <input type="text" id="note" placeholder="Not (Opsiyonel)" style="width: 100%;">
+                    <input type="text" id="category" placeholder="Kategori" list="catList">
                 </div>
-                <button class="btn-primary" onclick="addTransaction()">İşlemi Kaydet</button>
+                <input type="text" id="note" placeholder="Not ekle..." style="margin-top:10px">
+                <input type="date" id="date" style="margin-top:10px">
+                <button onclick="addTransaction()" style="margin-top:15px">İŞLEMİ KAYDET</button>
             </div>
 
             <div class="card">
-                <h3>📊 Harcama Analizi</h3>
-                <div class="tabs">
-                    <div class="tab-btn active" onclick="updateCharts('pie')">Kategoriler</div>
-                    <div class="tab-btn" onclick="updateCharts('line')">Zaman Çizelgesi</div>
-                </div>
-                <canvas id="mainChart" style="max-height: 300px;"></canvas>
+                <h3>📈 HARCAMA TRENDİ</h3>
+                <canvas id="mainChart" style="max-height: 250px;"></canvas>
             </div>
 
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3>📜 İşlem Geçmişi</h3>
-                    <input type="text" id="search" placeholder="Ara..." oninput="renderUI()" style="width: 150px; padding: 5px 10px;">
-                </div>
-                <div id="transactionList" class="transaction-list"></div>
+                <h3>📜 İŞLEM GEÇMİŞİ</h3>
+                <input type="text" id="search" placeholder="İşlemlerde ara..." oninput="render()" style="margin-bottom:15px">
+                <div id="historyList"></div>
             </div>
         </div>
 
-        <div class="sidebar">
+        <div class="col">
             <div class="card">
-                <h3>🎯 Kategori Limitleri</h3>
-                <div class="form-group" style="flex-direction: column;">
-                    <input type="text" id="limitCat" placeholder="Kategori">
-                    <input type="number" id="limitVal" placeholder="Aylık Limit (₺)">
-                    <button class="btn-primary" onclick="setLimit()" style="background: var(--text);">Limit Belirle</button>
-                </div>
-                <div id="limitList" style="margin-top: 20px;"></div>
+                <h3>📉 BORÇ TAKİBİ</h3>
+                <input type="text" id="debtName" placeholder="Borç Adı">
+                <input type="number" id="debtAmt" placeholder="Toplam Tutar">
+                <button onclick="addDebt()" style="background:var(--danger); margin-top:10px">BORÇ EKLE</button>
+                <div id="debtList" style="margin-top:15px"></div>
             </div>
 
             <div class="card">
-                <h3>⚙️ Veri Yönetimi</h3>
-                <button class="btn-primary" onclick="exportData()" style="background:#f1f2f6; color:#2f3542; margin-bottom:10px;">Excel/CSV Dışa Aktar</button>
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn-primary" onclick="backupJSON()" style="background:#747d8c; flex:1">Yedekle</button>
-                    <button class="btn-primary" onclick="document.getElementById('importFile').click()" style="background:#747d8c; flex:1">Yükle</button>
+                <h3>🎯 TASARRUF HEDEFLERİ</h3>
+                <input type="text" id="goalName" placeholder="Hedef (Örn: Araba)">
+                <input type="number" id="goalAmt" placeholder="Hedef Tutar">
+                <button onclick="addGoal()" style="background:var(--warning); margin-top:10px">HEDEF KOY</button>
+                <div id="goalList" style="margin-top:15px"></div>
+            </div>
+
+            <div class="card">
+                <h3>🔄 AKTİF ABONELİKLER</h3>
+                <div class="input-group">
+                    <input type="text" id="subName" placeholder="Netflix, Spotify...">
+                    <input type="number" id="subPrice" placeholder="Aylık Ücret" style="margin-top:5px">
+                    <button onclick="addSub()" class="btn-outline">ABONELİK EKLE</button>
                 </div>
-                <input type="file" id="importFile" hidden onchange="importJSON(event)">
-                <button onclick="clearAllData()" style="background:none; color:var(--danger); border:none; width:100%; font-size:11px; margin-top:15px; cursor:pointer;">Tüm Verileri Sıfırla</button>
+                <div id="subList"></div>
             </div>
         </div>
+
     </div>
 </div>
 
+<datalist id="catList">
+    <option value="Market"> <option value="Kira"> <option value="Maaş"> <option value="Eğlence"> <option value="Fatura">
+</datalist>
+
 <script>
-    let transactions = JSON.parse(localStorage.getItem("pro_transactions")) || [];
-    let limits = JSON.parse(localStorage.getItem("pro_limits")) || {};
-    let chartInstance = null;
+    let db = JSON.parse(localStorage.getItem("ultra_pro_v1")) || {
+        transactions: [],
+        investments: [],
+        debts: [],
+        goals: [],
+        subs: []
+    };
 
-    // Başlangıç Ayarları
-    document.getElementById('date').valueAsDate = new Date();
-    const currentMonth = new Date().toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
-    document.getElementById('currentMonthDisplay').textContent = currentMonth;
+    let chart;
 
-    function save() {
-        localStorage.setItem("pro_transactions", JSON.stringify(transactions));
-        localStorage.setItem("pro_limits", JSON.stringify(limits));
-    }
+    function save() { localStorage.setItem("ultra_pro_v1", JSON.stringify(db)); }
 
     function addTransaction() {
-        const amount = Number(document.getElementById('amount').value);
-        const category = document.getElementById('category').value;
-        const date = document.getElementById('date').value;
+        const amt = Number(document.getElementById('amount').value);
+        const cat = document.getElementById('category').value;
         const type = document.getElementById('type').value;
+        const date = document.getElementById('date').value;
         const note = document.getElementById('note').value;
 
-        if (!amount || !category || !date) return alert("Lütfen temel alanları doldurun.");
+        if(!amt || !cat || !date) return alert("Eksik alan!");
 
-        transactions.unshift({ id: Date.now(), amount, category, date, type, note });
-        save();
-        renderUI();
-        
-        // Form Temizle
-        document.getElementById('amount').value = "";
-        document.getElementById('category').value = "";
-        document.getElementById('note').value = "";
+        db.transactions.unshift({ id: Date.now(), amt, cat, type, date, note });
+        save(); render();
+        document.getElementById('amount').value = ""; document.getElementById('category').value = "";
     }
 
-    function deleteTransaction(id) {
-        transactions = transactions.filter(t => t.id !== id);
-        save();
-        renderUI();
+    function addInvestment() {
+        const name = document.getElementById('invName').value;
+        const val = Number(document.getElementById('invVal').value);
+        if(name && val) { db.investments.push({ id: Date.now(), name, val }); save(); render(); }
     }
 
-    function setLimit() {
-        const cat = document.getElementById('limitCat').value;
-        const val = Number(document.getElementById('limitVal').value);
-        if (cat && val) {
-            limits[cat] = val;
-            save();
-            renderUI();
-            document.getElementById('limitCat').value = "";
-            document.getElementById('limitVal').value = "";
-        }
+    function addDebt() {
+        const name = document.getElementById('debtName').value;
+        const amt = Number(document.getElementById('debtAmt').value);
+        if(name && amt) { db.debts.push({ id: Date.now(), name, amt, paid: 0 }); save(); render(); }
     }
 
-    function renderUI() {
+    function addGoal() {
+        const name = document.getElementById('goalName').value;
+        const amt = Number(document.getElementById('goalAmt').value);
+        if(name && amt) { db.goals.push({ id: Date.now(), name, amt, current: 0 }); save(); render(); }
+    }
+
+    function addSub() {
+        const name = document.getElementById('subName').value;
+        const price = Number(document.getElementById('subPrice').value);
+        if(name && price) { db.subs.push({ id: Date.now(), name, price }); save(); render(); }
+    }
+
+    function deleteItem(list, id) {
+        db[list] = db[list].filter(item => item.id !== id);
+        save(); render();
+    }
+
+    function render() {
         const search = document.getElementById('search').value.toLowerCase();
-        const list = document.getElementById('transactionList');
-        const now = new Date();
-        const thisMonth = now.getMonth();
-        const thisYear = now.getFullYear();
-
-        let totals = { income: 0, expense: 0, monthExp: 0 };
-        let catUsage = {};
+        let income = 0, expense = 0, invTotal = 0, debtTotal = 0;
         
-        list.innerHTML = "";
-        
-        // İşlemleri İşle
-        transactions.forEach(t => {
-            const tDate = new Date(t.date);
-            const isThisMonth = tDate.getMonth() === thisMonth && tDate.getFullYear() === thisYear;
-
-            if (t.type === 'income') {
-                totals.income += t.amount;
-            } else {
-                totals.expense += t.amount;
-                if (isThisMonth) {
-                    totals.monthExp += t.amount;
-                    catUsage[t.category] = (catUsage[t.category] || 0) + t.amount;
-                }
-            }
-
-            // Listeleme (Arama filtresine göre)
-            if (t.category.toLowerCase().includes(search) || t.note.toLowerCase().includes(search)) {
-                list.innerHTML += `
-                    <div class="t-item">
-                        <div class="t-info">
-                            <strong>${t.category}</strong>
-                            <small>${t.date} ${t.note ? '• ' + t.note : ''}</small>
-                        </div>
-                        <div style="display:flex; align-items:center">
-                            <span class="t-amount ${t.type}-text">${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₺</span>
-                            <span class="delete-btn" onclick="deleteTransaction(${t.id})">×</span>
-                        </div>
-                    </div>`;
+        // Render Transactions
+        const hist = document.getElementById('historyList'); hist.innerHTML = "";
+        db.transactions.forEach(t => {
+            if(t.type === 'income') income += t.amt; else expense += t.amt;
+            if(t.cat.toLowerCase().includes(search) || t.note.toLowerCase().includes(search)) {
+                hist.innerHTML += `
+                <div class="list-item">
+                    <div class="item-main"><span class="item-title">${t.cat}</span><small class="item-sub">${t.date} ${t.note ? '• '+t.note : ''}</small></div>
+                    <div style="display:flex; align-items:center gap:10px">
+                        <span class="val-${t.type==='income'?'inc':'exp'}">${t.type==='income'?'+':'-'}${t.amt.toLocaleString()} ₺</span>
+                        <span onclick="deleteItem('transactions', ${t.id})" style="cursor:pointer; margin-left:10px; color:var(--text-dim)">×</span>
+                    </div>
+                </div>`;
             }
         });
 
-        // Dashboard Güncelle
-        document.getElementById('totalBalance').textContent = (totals.income - totals.expense).toLocaleString() + " ₺";
-        document.getElementById('monthExpense').textContent = totals.monthExp.toLocaleString() + " ₺";
-        document.getElementById('monthSaving').textContent = (totals.income - totals.expense > 0 ? totals.income - totals.expense : 0).toLocaleString() + " ₺";
-
-        // Limitleri Güncelle
-        const limitList = document.getElementById('limitList');
-        limitList.innerHTML = "";
-        for (let cat in limits) {
-            const used = catUsage[cat] || 0;
-            const perc = Math.min((used / limits[cat]) * 100, 100);
-            const color = perc > 90 ? 'var(--danger)' : (perc > 70 ? 'var(--warning)' : 'var(--primary)');
-            
-            limitList.innerHTML += `
-                <div class="limit-item">
-                    <div class="limit-header">
-                        <span>${cat}</span>
-                        <span>${used.toLocaleString()} / ${limits[cat].toLocaleString()} ₺</span>
-                    </div>
-                    <div class="progress-bg">
-                        <div class="progress-fill" style="width:${perc}%; background:${color}"></div>
-                    </div>
+        // Render Investments
+        const invList = document.getElementById('investmentList'); invList.innerHTML = "";
+        db.investments.forEach(i => {
+            invTotal += i.val;
+            invList.innerHTML += `
+                <div class="list-item">
+                    <span class="item-title">${i.name}</span>
+                    <span class="val-inc">${i.val.toLocaleString()} ₺</span>
                 </div>`;
-        }
+        });
 
-        updateCharts('pie', catUsage);
-        updateCategoryDatalist();
+        // Render Debts
+        const dList = document.getElementById('debtList'); dList.innerHTML = "";
+        db.debts.forEach(d => {
+            debtTotal += d.amt;
+            dList.innerHTML += `
+                <div style="margin-bottom:10px">
+                    <div class="list-item"><span>${d.name}</span><b>${d.amt.toLocaleString()} ₺</b></div>
+                    <div class="progress-w"><div class="progress-f" style="width:0%; background:var(--danger)"></div></div>
+                </div>`;
+        });
+
+        // Render Goals
+        const gList = document.getElementById('goalList'); gList.innerHTML = "";
+        db.goals.forEach(g => {
+            const perc = Math.min(((income-expense)/g.amt)*100, 100);
+            gList.innerHTML += `
+                <div style="margin-bottom:15px">
+                    <div class="list-item"><span>${g.name}</span><span>${g.amt.toLocaleString()} ₺</span></div>
+                    <div class="progress-w"><div class="progress-f" style="width:${perc}%"></div></div>
+                </div>`;
+        });
+
+        // Render Subs
+        const sList = document.getElementById('subList'); sList.innerHTML = "";
+        db.subs.forEach(s => {
+            sList.innerHTML += `<div class="list-item"><small>${s.name}</small><small>${s.price} ₺/ay</small></div>`;
+        });
+
+        // Dashboard Stats
+        const net = (income + invTotal) - (expense + debtTotal);
+        document.getElementById('netWorthDisplay').textContent = net.toLocaleString() + " ₺";
+        document.getElementById('totalAssets').textContent = (income + invTotal).toLocaleString();
+        document.getElementById('totalLiabilities').textContent = (expense + debtTotal).toLocaleString();
+
+        updateHealth(income, expense, debtTotal);
+        updateChart();
+        runAI(income, expense, invTotal, debtTotal);
     }
 
-    function updateCharts(type, catData = null) {
-        const ctx = document.getElementById('mainChart').getContext('2d');
-        if (chartInstance) chartInstance.destroy();
-
-        if (!catData) {
-            catData = {};
-            const thisMonth = new Date().getMonth();
-            transactions.forEach(t => {
-                if (t.type === 'expense' && new Date(t.date).getMonth() === thisMonth) {
-                    catData[t.category] = (catData[t.category] || 0) + t.amount;
-                }
-            });
-        }
-
-        if (type === 'pie') {
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(catData),
-                    datasets: [{
-                        data: Object.values(catData),
-                        backgroundColor: ['#4361ee', '#f72585', '#4cc9f0', '#ff9f1c', '#3f37c9', '#7209b7']
-                    }]
-                },
-                options: { plugins: { legend: { position: 'bottom' } } }
-            });
-        } else {
-            // Zaman Çizelgesi
-            const daily = {};
-            transactions.slice(0, 15).reverse().forEach(t => {
-                daily[t.date] = (daily[t.date] || 0) + (t.type === 'income' ? t.amount : -t.amount);
-            });
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(daily),
-                    datasets: [{
-                        label: 'Günlük Net Değişim',
-                        data: Object.values(daily),
-                        borderColor: '#4361ee',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(67, 97, 238, 0.1)'
-                    }]
-                }
-            });
-        }
+    function updateHealth(inc, exp, debt) {
+        let score = 50;
+        if(inc > exp) score += 20;
+        if(debt === 0) score += 20;
+        if(inc > exp * 2) score += 10;
+        if(exp > inc) score -= 30;
         
-        // Tab styling
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event?.target?.classList?.add('active');
+        score = Math.max(0, Math.min(100, score));
+        const circle = document.getElementById('healthScore');
+        circle.textContent = score;
+        circle.style.borderColor = score > 70 ? 'var(--success)' : (score > 40 ? 'var(--warning)' : 'var(--danger)');
+        document.getElementById('healthStatus').textContent = score > 70 ? "FİNANSAL GÜÇLÜ" : (score > 40 ? "DİKKATLİ OLUN" : "KRİTİK DURUM");
     }
 
-    function updateCategoryDatalist() {
-        const list = document.getElementById('categoryList');
-        const cats = [...new Set(transactions.map(t => t.category))];
-        list.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+    function runAI(inc, exp, inv, debt) {
+        const advice = document.getElementById('aiAdvice');
+        let msg = "Analiz: ";
+        if(db.subs.length > 3) msg += "Çok fazla aboneliğin var, birini iptal etmeyi düşün. ";
+        if(inv < inc * 0.1) msg += "Varlıklarının sadece küçük bir kısmı yatırımda. ";
+        if(exp > inc) msg += "Açık veriyorsun! Borçlanma riskin var. ";
+        if(inc > exp && debt > 0) msg += "Kasadaki fazlayı borç kapatmak için kullan.";
+        advice.innerHTML = msg;
     }
 
-    // Dışa Aktar / Yedekle
-    function exportData() {
-        let csv = "\uFEFFTarih,Kategori,Tip,Tutar,Not\n";
-        transactions.forEach(t => csv += `${t.date},${t.category},${t.type},${t.amount},${t.note}\n`);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `Butce_Rapor_${new Date().toLocaleDateString()}.csv`;
-        link.click();
+    function updateChart() {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        const data = {};
+        db.transactions.filter(t => t.type==='expense').slice(0,10).forEach(t => {
+            data[t.cat] = (data[t.cat] || 0) + t.amt;
+        });
+
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['#4361ee', '#4cc9f0', '#f72585', '#ff9f1c', '#3f37c9'],
+                    borderWidth: 0
+                }]
+            },
+            options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+        });
     }
 
-    function backupJSON() {
-        const data = JSON.stringify({ transactions, limits });
-        const blob = new Blob([data], { type: 'application/json' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "butce_yedek_pro.json";
-        link.click();
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "Finans_Pro_Yedek.json";
+        a.click();
     }
 
-    function importJSON(e) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const data = JSON.parse(event.target.result);
-            transactions = data.transactions || [];
-            limits = data.limits || {};
-            save();
-            renderUI();
-            alert("Veriler başarıyla yüklendi!");
+    function importJSON() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = e => {
+            const reader = new FileReader();
+            reader.onload = () => { db = JSON.parse(reader.result); save(); render(); };
+            reader.readAsText(e.target.files[0]);
         };
-        reader.readAsText(e.target.files[0]);
+        input.click();
     }
 
-    function clearAllData() {
-        if (confirm("DİKKAT! Tüm verileriniz kalıcı olarak silinecektir. Emin misiniz?")) {
-            localStorage.clear();
-            location.reload();
-        }
-    }
-
-    // Başlat
-    renderUI();
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    render();
 </script>
 
 </body>
-</html>
+    </html>
+    
