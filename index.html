@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basit Ev Bütçe</title>
+
+<style>
+body { font-family: Arial; padding:20px; }
+input, button { width:100%; padding:10px; margin:5px 0; }
+.card { border:1px solid #ddd; padding:15px; margin-top:10px; }
+h2 { text-align:center; }
+</style>
+</head>
+<body>
+
+<h2>Ev Bütçe</h2>
+
+<input id="amount" type="number" placeholder="Tutar gir">
+<button onclick="addIncome()">Gelir Ekle</button>
+<button onclick="addExpense()">Gider Ekle</button>
+
+<div class="card">
+<p>Toplam Gelir: <span id="income">0</span> ₺</p>
+<p>Toplam Gider: <span id="expense">0</span> ₺</p>
+<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+</div>
+
+<script>
+let income = Number(localStorage.getItem("income")) || 0;
+let expense = Number(localStorage.getItem("expense")) || 0;
+
+function updateUI(){
+document.getElementById("income").textContent = income;
+document.getElementById("expense").textContent = expense;
+document.getElementById("balance").textContent = income - expense;
+}
+
+function addIncome(){
+let val = Number(document.getElementById("amount").value);
+if(!val) return;
+income += val;
+localStorage.setItem("income", income);
+updateUI();
+document.getElementById("amount").value = "";
+}
+
+function addExpense(){
+let val = Number(document.getElementById("amount").value);
+if(!val) return;
+expense += val;
+localStorage.setItem("expense", expense);
+updateUI();
+document.getElementById("amount").value = "";
+}
+
+updateUI();
+</script>
+
+</body>
+</html>
