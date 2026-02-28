@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fahrican EKER</title>
+    <title>Kişisel CFO PRO - Eksiksiz Sürüm</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -20,15 +20,19 @@
         .card h3 { margin: 0 0 15px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--info); }
         .net-worth { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 5px; }
         
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; outline: none; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; }
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
-        .val-inc { color: var(--success); } .val-exp { color: var(--danger); }
-        .val-wait { color: var(--warning); opacity: 0.7; } /* Gelecek tarihli işlemler */
-
-        .check-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; color: var(--text-dim); }
-        .check-group input { width: auto; margin: 0; }
         
+        .val-inc { color: var(--success); } .val-exp { color: var(--danger); }
+        .val-wait { color: var(--warning); opacity: 0.6; font-style: italic; }
+
+        .cat-tag { background: var(--border); padding: 4px 8px; border-radius: 6px; font-size: 10px; display: inline-flex; align-items: center; gap: 5px; margin: 2px; }
+        .cat-del { cursor: pointer; color: var(--danger); }
+        
+        .check-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 11px; color: var(--text-dim); }
+        .check-group input { width: auto; margin: 0; }
+
         @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -37,8 +41,8 @@
 <div class="container">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <div>
-            <h1 style="margin:0; font-size: 22px;">KİŞİSEL <span style="color:var(--primary)">CFO: ZAMANLI TAKİP</span></h1>
-            <small id="todayStr" style="color:var(--warning)"></small>
+            <h1 style="margin:0; font-size: 22px;">KİŞİSEL <span style="color:var(--primary)">CFO PRO</span></h1>
+            <small id="todayDisplay" style="color:var(--warning)"></small>
         </div>
         <button onclick="clearAll()" style="width:auto; background:none; color:var(--text-dim); border:1px solid var(--border); padding: 5px 15px;">Sıfırla</button>
     </header>
@@ -46,25 +50,38 @@
     <div class="grid">
         <div class="col">
             <div class="card">
-                <h3>💰 MEVCUT KASA (BUGÜN)</h3>
+                <h3>💰 KASA (BUGÜN)</h3>
                 <div class="net-worth" id="netWorthDisplay">0 ₺</div>
                 <div id="pendingInfo" style="font-size: 11px; color: var(--warning);"></div>
             </div>
 
             <div class="card">
-                <h3>🤖 ANALİZ VE ÖNGÖRÜ</h3>
-                <div id="aiReport" style="line-height: 1.5; color: #e2e8f0;">Veri bekleniyor...</div>
+                <h3>🏷️ KATEGORİ YÖNETİMİ</h3>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <input type="text" id="newCatName" placeholder="Ad..." style="margin:0">
+                    <select id="newCatType" style="margin:0; width: 90px;">
+                        <option value="income">Gelir</option>
+                        <option value="expense">Gider</option>
+                    </select>
+                    <button onclick="addCustomCategory()" style="width: 45px;">+</button>
+                </div>
+                <div id="catListDisplay" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="card">
+                <h3>🤖 ANALİST NOTU</h3>
+                <div id="aiReport" style="font-size: 12px; line-height: 1.5; color: #e2e8f0;">Veri bekleniyor...</div>
             </div>
         </div>
 
         <div class="col">
             <div class="card">
-                <h3>💳 AKILLI İŞLEM EKLE</h3>
+                <h3>💳 İŞLEM GİRİŞİ</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <input type="number" id="amount" placeholder="Tutar (₺)">
                     <select id="transType" onchange="updateCategoryDropdown()">
-                        <option value="expense">Gider / Borç Ödeme</option>
-                        <option value="income">Gelir</option>
+                        <option value="expense">Gider / Ödeme (-)</option>
+                        <option value="income">Gelir (+)</option>
                     </select>
                 </div>
                 <select id="categorySelect"></select>
@@ -72,21 +89,21 @@
                 
                 <div class="check-group">
                     <input type="checkbox" id="isRecurring">
-                    <label for="isRecurring">Her ay aynı gün tekrarla</label>
+                    <label for="isRecurring">Bu işlemi her ay tekrarla</label>
                 </div>
 
-                <button onclick="addTransaction()">KAYDET</button>
+                <button onclick="addTransaction()">SİSTEME KAYDET</button>
             </div>
 
             <div class="card">
                 <h3>📜 İŞLEM GEÇMİŞİ VE PLANLAR</h3>
-                <div id="historyList" style="max-height: 500px; overflow-y: auto;"></div>
+                <div id="historyList" style="max-height: 450px; overflow-y: auto;"></div>
             </div>
         </div>
 
         <div class="col">
-            <div class="card">
-                <h3>📉 BORÇLARIN DURUMU</h3>
+            <div class="card" style="border-top: 3px solid var(--danger);">
+                <h3>📉 BORÇLARIM</h3>
                 <div style="display: flex; gap: 5px; margin-bottom:10px;">
                     <input type="text" id="debtName" placeholder="Borç Adı" style="margin:0">
                     <input type="number" id="debtAmt" placeholder="₺" style="margin:0; width: 80px;">
@@ -95,8 +112,8 @@
                 <div id="debtList"></div>
             </div>
 
-            <div class="card">
-                <h3>💎 VARLIKLAR</h3>
+            <div class="card" style="border-top: 3px solid var(--success);">
+                <h3>💎 VARLIKLARIM</h3>
                 <div style="display: flex; gap: 5px; margin-bottom:10px;">
                     <input type="text" id="invName" placeholder="Varlık" style="margin:0">
                     <input type="number" id="invVal" placeholder="₺" style="margin:0; width: 80px;">
@@ -109,17 +126,33 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem("cfo_time_pro")) || {
+    let db = JSON.parse(localStorage.getItem("cfo_vFinal_db")) || {
         transactions: [],
         categories: {
-            income: ["Maaş", "Freelance", "Kira Geliri"],
-            expense: ["Market", "Fatura", "Kira", "Eğlence"]
+            income: ["Maaş", "Freelance"],
+            expense: ["Market", "Kira", "Fatura"]
         },
         investments: [],
         debts: []
     };
 
-    function save() { localStorage.setItem("cfo_time_pro", JSON.stringify(db)); }
+    function save() { localStorage.setItem("cfo_vFinal_db", JSON.stringify(db)); }
+
+    // KATEGORİ YÖNETİMİ
+    function addCustomCategory() {
+        const name = document.getElementById('newCatName').value.trim();
+        const type = document.getElementById('newCatType').value;
+        if(name && !db.categories[type].includes(name)) {
+            db.categories[type].push(name);
+            document.getElementById('newCatName').value = "";
+            save(); render();
+        }
+    }
+
+    function removeCategory(type, name) {
+        db.categories[type] = db.categories[type].filter(c => c !== name);
+        save(); render();
+    }
 
     function updateCategoryDropdown() {
         const type = document.getElementById('transType').value;
@@ -131,11 +164,12 @@
         select.innerHTML = html;
     }
 
+    // BORÇ VE VARLIK
     function addDebt() {
         const name = document.getElementById('debtName').value.trim();
         const amt = Number(document.getElementById('debtAmt').value);
         if(name && amt) {
-            db.debts.push({ id: Date.now(), name, remaining: amt });
+            db.debts.push({ id: Date.now(), name, initial: amt });
             save(); render();
             document.getElementById('debtName').value = ""; document.getElementById('debtAmt').value = "";
         }
@@ -147,6 +181,7 @@
         if(name && val) { db.investments.push({ id: Date.now(), name, val }); save(); render(); }
     }
 
+    // İŞLEM EKLEME
     function addTransaction() {
         const amt = Number(document.getElementById('amount').value);
         const type = document.getElementById('transType').value;
@@ -154,110 +189,90 @@
         const date = document.getElementById('date').value;
         const isRec = document.getElementById('isRecurring').checked;
 
-        if(!amt || !date) return alert("Hata!");
+        if(!amt || !date) return alert("Hata: Tutar ve tarih girin.");
 
-        db.transactions.unshift({
-            id: Date.now(),
-            amt, type, cat, date,
-            recurring: isRec,
-            status: "pending"
-        });
-        
+        db.transactions.unshift({ id: Date.now(), amt, type, cat, date, recurring: isRec });
         save(); render();
         document.getElementById('amount').value = "";
         document.getElementById('isRecurring').checked = false;
     }
 
     function render() {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        document.getElementById('todayStr').textContent = "Bugünün Tarihi: " + today.toLocaleDateString('tr-TR');
+        const today = new Date(); today.setHours(0,0,0,0);
+        document.getElementById('todayDisplay').textContent = "Bugün: " + today.toLocaleDateString('tr-TR');
         updateCategoryDropdown();
 
-        let currentCash = 0;
-        let pendingInc = 0;
-        let pendingExp = 0;
-        let totalDebt = 0;
-        let totalInv = 0;
+        // Kategori Listesini Göster
+        let catHTML = "<b>Gelir:</b><br>";
+        db.categories.income.forEach(c => catHTML += `<span class="cat-tag">${c}<span class="cat-del" onclick="removeCategory('income','${c}')">×</span></span>`);
+        catHTML += "<br><br><b>Gider:</b><br>";
+        db.categories.expense.forEach(c => catHTML += `<span class="cat-tag">${c}<span class="cat-del" onclick="removeCategory('expense','${c}')">×</span></span>`);
+        document.getElementById('catListDisplay').innerHTML = catHTML;
 
-        // Varlıklar ve Borçları Hesapla (Statik)
-        db.investments.forEach(i => totalInv += i.val);
-        const dList = document.getElementById('debtList'); dList.innerHTML = "";
-        db.debts.forEach(d => {
-            totalDebt += d.remaining;
-            dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="val-exp">${d.remaining.toLocaleString()} ₺</span></div>`;
-        });
+        let cash = 0, pInc = 0, pExp = 0;
+        let debtBalances = {};
+        db.debts.forEach(d => debtBalances[d.name] = d.initial);
 
+        // İŞLEMLERİ VE KASAYI HESAPLA
         const hList = document.getElementById('historyList'); hList.innerHTML = "";
-        
-        // İŞLEMLERİ ANALİZ ET
         db.transactions.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(t => {
-            const tDate = new Date(t.date);
-            tDate.setHours(0,0,0,0);
-
+            const tDate = new Date(t.date); tDate.setHours(0,0,0,0);
             const isFuture = tDate > today;
-            let displayClass = "";
 
-            if (!isFuture) {
-                // BUGÜN VEYA GEÇMİŞ: Kasaya etkile
-                if (t.type === 'income') currentCash += t.amt;
+            if(!isFuture) {
+                if(t.type === 'income') cash += t.amt;
                 else {
-                    currentCash -= t.amt;
-                    // Eğer borç ödemesiyse ve daha önce borçtan düşülmediyse (basit mantık için her render'da hesaplıyoruz)
+                    cash -= t.amt;
                     if(t.cat.startsWith("BORÇ: ")) {
-                        // Borç düşme mantığı burada her renderda sıfırdan hesaplanmalı 
-                        // ya da işlem eklendiği an borç objesi güncellenmeli.
-                        // Senin senaryonda "zamanı gelince borçtan düşsün" dediğin için:
                         const dName = t.cat.replace("BORÇ: ", "");
-                        const debtObj = db.debts.find(d => d.name === dName);
-                        // Not: Bu basit örnekte borç düşmeyi karmaşıklaştırmamak için 
-                        // borç objesini işlem eklendiğinde güncellemek en sağlıklısıdır.
+                        if(debtBalances[dName] !== undefined) debtBalances[dName] -= t.amt;
                     }
                 }
-                displayClass = t.type === 'income' ? 'val-inc' : 'val-exp';
             } else {
-                // GELECEK: Bekleyenlere ekle
-                if (t.type === 'income') pendingInc += t.amt;
-                else pendingExp += t.amt;
-                displayClass = 'val-wait';
+                if(t.type === 'income') pInc += t.amt; else pExp += t.amt;
             }
 
             hList.innerHTML += `
-                <div class="list-item" style="${isFuture ? 'border-left: 3px solid var(--warning); padding-left:10px;' : ''}">
-                    <div>
-                        <b>${t.cat}</b> ${t.recurring ? '🔄' : ''}<br>
-                        <small>${t.date} ${isFuture ? '(BEKLEYEN)' : ''}</small>
-                    </div>
-                    <span class="${displayClass}">${t.type === 'income' ? '+' : '-'}${t.amt.toLocaleString()} ₺</span>
+                <div class="list-item" style="${isFuture ? 'opacity:0.6; border-left:3px solid var(--warning); padding-left:8px;' : ''}">
+                    <div><b>${t.cat}</b> ${t.recurring ? '🔄' : ''}<br><small>${t.date} ${isFuture ? '(BEKLEYEN)' : ''}</small></div>
+                    <span class="${isFuture ? 'val-wait' : (t.type === 'income' ? 'val-inc' : 'val-exp')}">
+                        ${t.type === 'income' ? '+' : '-'}${t.amt.toLocaleString()} ₺
+                    </span>
                 </div>`;
         });
 
-        // Dashboard Güncelle
-        document.getElementById('netWorthDisplay').textContent = (currentCash + totalInv).toLocaleString() + " ₺";
-        document.getElementById('pendingInfo').innerHTML = 
-            `📅 Yaklaşan: <span class="val-inc">+${pendingInc.toLocaleString()}</span> / <span class="val-exp">-${pendingExp.toLocaleString()} ₺</span>`;
+        // BORÇ LİSTESİNİ GÜNCELLE
+        const dList = document.getElementById('debtList'); dList.innerHTML = "";
+        let totalRemainingDebt = 0;
+        db.debts.forEach(d => {
+            const rem = debtBalances[d.name];
+            totalRemainingDebt += rem;
+            dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="${rem <= 0 ? 'val-inc' : 'val-exp'}">${rem.toLocaleString()} ₺</span></div>`;
+        });
 
-        // AI Analizi
-        let aiMsg = "";
-        if (pendingExp > (currentCash + pendingInc)) {
-            aiMsg = "⚠️ <b>DİKKAT:</b> Gelecek ayki ödemelerin mevcut kasanı ve beklenen maaşını aşıyor! Borçlanma riski var.";
-        } else if (pendingExp > 0) {
-            aiMsg = `✅ Mart ayı için <b>${pendingExp.toLocaleString()} ₺</b> ödemen planlanmış. Maaşın yattığında kasan güvende kalacak.`;
-        }
-        document.getElementById('aiReport').innerHTML = aiMsg;
-
+        // VARLIKLAR
+        let totalInv = 0;
         const iList = document.getElementById('investmentList'); iList.innerHTML = "";
         db.investments.forEach(i => {
+            totalInv += i.val;
             iList.innerHTML += `<div class="list-item"><span>${i.name}</span><span class="val-inc">${i.val.toLocaleString()} ₺</span></div>`;
         });
+
+        // DASHBOARD
+        document.getElementById('netWorthDisplay').textContent = (cash + totalInv).toLocaleString() + " ₺";
+        document.getElementById('pendingInfo').innerHTML = `Gelecek Planı: <span class="val-inc">+${pInc.toLocaleString()}</span> / <span class="val-exp">-${pExp.toLocaleString()} ₺</span>`;
+
+        // AI
+        let aiMsg = "";
+        if (pExp > (cash + pInc)) aiMsg = "⚠️ <b>KRİTİK:</b> Gelecek ödemelerin eldeki nakdini aşıyor! Harcama planını revize et.";
+        else if (pExp > 0) aiMsg = `✅ Mart ayı için <b>${pExp.toLocaleString()} ₺</b> ödemen planlanmış. Kasan şu an güvende.`;
+        else aiMsg = "Sistem stabil. Yeni işlem bekleniyor.";
+        document.getElementById('aiReport').innerHTML = aiMsg;
     }
 
-    function clearAll() { if(confirm("Tüm veriler silinsin mi?")) { localStorage.clear(); location.reload(); } }
+    function clearAll() { if(confirm("Her şey silinsin mi?")) { localStorage.clear(); location.reload(); } }
     document.getElementById('date').valueAsDate = new Date();
     render();
-    
-    // Her gün değiştiğinde kontrol etmesi için basit bir interval (opsiyonel)
-    setInterval(render, 3600000); 
 </script>
 </body>
 </html>
