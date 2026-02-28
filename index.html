@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kişisel CFO PRO MAX</title>
+    <title>Fahrican EKER</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -14,13 +14,8 @@
         }
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-size: 13px; }
-        .container { max-width: 1450px; margin: 0 auto; display: none; } /* PIN girilene kadar gizli */
+        .container { max-width: 1450px; margin: 0 auto; }
         
-        /* PIN Ekranı */
-        #pinScreen { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-        .pin-box { background:var(--card); padding:40px; border-radius:16px; border:1px solid var(--border); text-align:center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
-        .pin-input { font-size: 24px; letter-spacing: 15px; text-align: center; width: 150px; padding: 10px; border-radius: 8px; border: 2px solid var(--primary); background: #0f172a; color: #fff; margin: 20px 0; outline: none; }
-
         .grid { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; }
         @media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } }
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
@@ -48,47 +43,32 @@
         .badge { background: #334155; padding: 8px 12px; border-radius: 20px; font-size: 11px; display: flex; align-items: center; gap: 5px; opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
         .badge.active { background: linear-gradient(45deg, var(--warning), #fbbf24); color: #000; opacity: 1; filter: grayscale(0%); font-weight: bold; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
 
-        /* Yazdırma (PDF) Stilleri */
         @media print {
             body { background: white; color: black; padding: 0; }
             .container { max-width: 100%; }
             .grid { grid-template-columns: 1fr; gap: 10px; }
-            .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; background: white; color: black; margin-bottom: 10px; padding: 15px; }
-            button, input, select, #pinScreen, .cat-tag span { display: none !important; }
+            .card { break-inside: avoid; border: 1px solid #ccc; background: white; color: black; margin-bottom: 10px; padding: 15px; }
+            button, input, select, .no-print { display: none !important; }
             .net-worth { color: black; }
-            .val-inc { color: green; } .val-exp { color: red; }
-            .badge.active { box-shadow: none; border: 1px solid #000; }
         }
-        
-        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div id="pinScreen">
-    <div class="pin-box">
-        <h2 style="margin:0 0 5px 0" id="pinTitle">HOŞ GELDİNİZ</h2>
-        <p style="color:var(--text-dim); font-size:12px; margin:0;" id="pinDesc">Lütfen 4 haneli PIN girin.</p>
-        <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="••••" onkeyup="checkPin(this.value)">
-        <button id="pinBtn" style="display:none;" onclick="setPin()">PIN OLUŞTUR VE GİR</button>
-        <p id="pinError" style="color:var(--danger); font-size:11px; margin-top:10px; display:none;">Hatalı PIN!</p>
-    </div>
-</div>
-
-<div class="container" id="mainApp">
+<div class="container">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
         <div>
             <h1 style="margin:0; font-size: 24px; letter-spacing: -1px;">KİŞİSEL <span style="color:var(--primary)">CFO PRO MAX</span></h1>
             <span id="currentDate" style="color:var(--text-dim); font-size: 12px;"></span>
         </div>
         <div style="display: flex; gap: 10px;" class="no-print">
-            <button onclick="window.print()" style="background:var(--success); color:#000;">📄 PDF RAPORU AL</button>
-            <button onclick="exportJSON()" style="background:var(--card); border:1px solid var(--border)">YEDEKLE</button>
+            <button onclick="window.print()" style="background:var(--success); color:#000; width:auto;">📄 PDF RAPORU AL</button>
+            <button onclick="exportJSON()" style="background:var(--card); border:1px solid var(--border); width:auto;">YEDEKLE</button>
+            <button onclick="clearAll()" style="background:var(--danger); width:auto;">SIFIRLA</button>
         </div>
     </header>
 
     <div class="grid">
-        
         <div class="col">
             <div class="card" style="border-top: 4px solid var(--primary);">
                 <h3>🚀 NET VARLIK</h3>
@@ -103,9 +83,9 @@
                 <h3>🏆 BAŞARI ROZETLERİ</h3>
                 <div class="badges-container">
                     <div class="badge" id="badgeStart">🌱 Başlangıç</div>
-                    <div class="badge" id="badgeSaver">💰 10K Tasarruf</div>
+                    <div class="badge" id="badgeSaver">💰 10K Birikim</div>
                     <div class="badge" id="badgeInvestor">📈 Yatırımcı</div>
-                    <div class="badge" id="badgeFree">⚔️ Borçsuz Savaşçı</div>
+                    <div class="badge" id="badgeFree">⚔️ Borçsuz</div>
                 </div>
             </div>
 
@@ -117,15 +97,15 @@
                     <div id="barSave" class="rule-segment" style="background:var(--success); width:0%;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 8px; color: var(--text-dim);">
-                    <span style="color:var(--info)">İhtiyaç: <span id="percNeed">%0</span></span>
-                    <span style="color:var(--warning)">İstek: <span id="percWant">%0</span></span>
-                    <span style="color:var(--success)">Tasarruf: <span id="percSave">%0</span></span>
+                    <span>İhtiyaç: <span id="percNeed">%0</span></span>
+                    <span>İstek: <span id="percWant">%0</span></span>
+                    <span>Tasarruf: <span id="percSave">%0</span></span>
                 </div>
             </div>
             
             <div class="card">
-                <h3>🤖 YAPAY ZEKA ÖZETİ</h3>
-                <div id="aiAdvice" style="font-style: italic; color: var(--success); line-height: 1.5;"></div>
+                <h3>🤖 AI FİNANSAL ANALİZ</h3>
+                <div id="aiAdvice" style="font-style: italic; color: var(--success); line-height: 1.5;">Veri bekleniyor...</div>
             </div>
         </div>
 
@@ -138,106 +118,83 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <select id="categorySelect"></select>
-                    <select id="needWantSelect"><option value="need">İhtiyaç</option><option value="want">Keyfi İstek</option><option value="save">Tasarruf</option></select>
+                    <select id="needWantSelect"><option value="need">Zorunlu İhtiyaç</option><option value="want">Keyfi İstek</option><option value="save">Yatırım/Birikim</option></select>
                 </div>
-                <input type="text" id="note" placeholder="Açıklama">
+                <input type="text" id="note" placeholder="Açıklama (Örn: Market alışverişi)">
                 <input type="date" id="date">
-                <button onclick="addTransaction()">KAYDET</button>
+                <button onclick="addTransaction()">İŞLEMİ KAYDET</button>
             </div>
 
             <div class="card">
-                <h3>📈 KATEGORİ GRAFİĞİ</h3>
+                <h3>📈 HARCAMA DAĞILIMI</h3>
                 <canvas id="mainChart" style="max-height: 220px;"></canvas>
             </div>
 
             <div class="card">
                 <h3>📜 SON İŞLEMLER</h3>
-                <div id="historyList" style="max-height: 250px; overflow-y: auto; padding-right: 5px;"></div>
+                <div id="historyList" style="max-height: 300px; overflow-y: auto;"></div>
             </div>
         </div>
 
         <div class="col">
             <div class="card">
-                <h3>💎 PORTFÖYÜM</h3>
+                <h3>🏷️ KATEGORİ EKLE</h3>
+                <div style="display: flex; gap: 5px;">
+                    <input type="text" id="newCatName" placeholder="Yeni..." style="margin:0">
+                    <button onclick="addCategory()" style="width: 60px;">EKLE</button>
+                </div>
+                <div id="categoryTags" style="margin-top: 10px; display: flex; flex-wrap: wrap;"></div>
+            </div>
+
+            <div class="card">
+                <h3>💎 YATIRIM PORTFÖYÜ</h3>
                 <div style="display: flex; gap: 5px;">
                     <input type="text" id="invName" placeholder="Varlık" style="margin:0">
-                    <input type="number" id="invVal" placeholder="Değer ₺" style="margin:0; width: 100px;">
+                    <input type="number" id="invVal" placeholder="₺" style="margin:0; width: 80px;">
                     <button onclick="addInvestment()" style="width: 50px; background:var(--success)">+</button>
                 </div>
                 <div id="investmentList" style="margin-top:10px"></div>
             </div>
 
             <div class="card">
-                <h3>📉 BORÇLARIM</h3>
+                <h3>📉 AKTİF BORÇLAR</h3>
                 <div style="display: flex; gap: 5px;">
-                    <input type="text" id="debtName" placeholder="Kurum/Kişi" style="margin:0">
-                    <input type="number" id="debtAmt" placeholder="Tutar ₺" style="margin:0; width: 100px;">
+                    <input type="text" id="debtName" placeholder="Borç" style="margin:0">
+                    <input type="number" id="debtAmt" placeholder="₺" style="margin:0; width: 80px;">
                     <button onclick="addDebt()" style="width: 50px; background:var(--danger)">+</button>
                 </div>
                 <div id="debtList" style="margin-top:10px"></div>
             </div>
 
             <div class="card">
-                <h3>🔮 PROJEKSİYON (Enflasyon Ayarlı)</h3>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size:11px; color:var(--text-dim)">
-                    <span>1 Yıl Sonra:</span><span id="proj1" style="color:#fff; font-weight:bold;">0 ₺</span>
+                <h3>🔮 5 YILLIK PROJEKSİYON</h3>
+                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-dim);">Reel Alım Gücü Tahmini</div>
+                    <div id="proj5" style="font-size: 22px; font-weight: bold; color: var(--info); margin-top: 5px;">0 ₺</div>
                 </div>
-                <div style="display: flex; justify-content: space-between; font-size:11px; color:var(--text-dim)">
-                    <span>5 Yıl Sonra:</span><span id="proj5" style="color:var(--info); font-weight:bold; font-size:14px;">0 ₺</span>
-                </div>
-            </div>
-            
-            <div style="display:none;" id="catSys">
-                <input type="text" id="newCatName"><button onclick="addCategory()"></button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- GÜVENLİK VE PIN SİSTEMİ ---
-    const savedPin = localStorage.getItem("cfo_pin");
-    const pinScreen = document.getElementById("pinScreen");
-    const mainApp = document.getElementById("mainApp");
-    const pinBtn = document.getElementById("pinBtn");
-
-    if(!savedPin) {
-        document.getElementById("pinTitle").textContent = "İLK KURULUM";
-        document.getElementById("pinDesc").textContent = "Uygulamanızı korumak için 4 haneli bir şifre belirleyin.";
-        pinBtn.style.display = "block";
-    }
-
-    function setPin() {
-        const val = document.getElementById("pinInput").value;
-        if(val.length === 4) { localStorage.setItem("cfo_pin", val); location.reload(); }
-        else { alert("Lütfen 4 haneli bir şifre girin."); }
-    }
-
-    function checkPin(val) {
-        if(savedPin && val.length === 4) {
-            if(val === savedPin) {
-                pinScreen.style.display = "none";
-                mainApp.style.display = "block";
-                render(); // Verileri şifre girilince yükle
-            } else {
-                document.getElementById("pinError").style.display = "block";
-                document.getElementById("pinInput").value = "";
-                setTimeout(() => document.getElementById("pinError").style.display = "none", 2000);
-            }
-        }
-    }
-
-    // --- VERİ TABANI ---
-    let db = JSON.parse(localStorage.getItem("cfo_promax")) || {
+    let db = JSON.parse(localStorage.getItem("cfo_final_open")) || {
         transactions: [],
-        categories: ["Maaş", "Market", "Kira", "Fatura", "Eğlence", "Yatırım"],
+        categories: ["Maaş", "Market", "Kira", "Fatura", "Eğlence"],
         investments: [], debts: []
     };
     let chart;
 
-    function save() { localStorage.setItem("cfo_promax", JSON.stringify(db)); }
+    function save() { localStorage.setItem("cfo_final_open", JSON.stringify(db)); }
 
-    // --- İŞLEMLER ---
+    function addCategory() {
+        const name = document.getElementById('newCatName').value.trim();
+        if(name && !db.categories.includes(name)) { db.categories.push(name); document.getElementById('newCatName').value = ""; save(); render(); }
+    }
+    function removeCategory(name) {
+        if(confirm(`'${name}' silinsin mi?`)) { db.categories = db.categories.filter(c => c !== name); save(); render(); }
+    }
+
     function addTransaction() {
         const amt = Number(document.getElementById('amount').value);
         const cat = document.getElementById('categorySelect').value;
@@ -245,8 +202,7 @@
         const nwType = document.getElementById('needWantSelect').value;
         const date = document.getElementById('date').value;
         const note = document.getElementById('note').value;
-
-        if(!amt || !date) return alert("Tutar ve tarih zorunludur!");
+        if(!amt || !date) return alert("Hata: Tutar ve tarih girin.");
         db.transactions.unshift({ id: Date.now(), amt, cat, type, nwType, date, note }); save(); render();
         document.getElementById('amount').value = ""; document.getElementById('note').value = "";
     }
@@ -263,81 +219,69 @@
     }
     function deleteItem(list, id) { db[list] = db[list].filter(item => item.id !== id); save(); render(); }
 
-    // --- RENDER & HESAPLAMALAR ---
     function render() {
         document.getElementById('categorySelect').innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        document.getElementById('categoryTags').innerHTML = db.categories.map(c => `<div style="background:var(--border); padding:3px 8px; border-radius:15px; font-size:10px; margin:2px;">${c} <span onclick="removeCategory('${c}')" style="cursor:pointer; color:var(--danger)">×</span></div>`).join('');
 
-        let income = 0, expense = 0, invTotal = 0, debtTotal = 0;
-        let needs = 0, wants = 0, saves = 0;
-        let catStats = {};
+        let inc = 0, exp = 0, invT = 0, debtT = 0, n = 0, w = 0, s = 0;
+        let cats = {};
 
-        // İşlemler
-        const hist = document.getElementById('historyList'); hist.innerHTML = "";
+        const hList = document.getElementById('historyList'); hList.innerHTML = "";
         db.transactions.forEach((t, i) => {
-            if(t.type === 'income') income += t.amt;
+            if(t.type === 'income') inc += t.amt;
             else { 
-                expense += t.amt; 
-                catStats[t.cat] = (catStats[t.cat] || 0) + t.amt;
-                if(t.nwType === 'need') needs += t.amt;
-                else if(t.nwType === 'want') wants += t.amt;
-                else if(t.nwType === 'save') saves += t.amt;
+                exp += t.amt; cats[t.cat] = (cats[t.cat] || 0) + t.amt;
+                if(t.nwType === 'need') n += t.amt; else if(t.nwType === 'want') w += t.amt; else s += t.amt;
             }
-            if(i < 15) { // Sadece son 15 işlemi göster (PDF için temiz dursun)
-                hist.innerHTML += `<div class="list-item"><div><b>${t.cat}</b> <small style="color:var(--text-dim)">${t.date}</small></div><div style="display:flex; align-items:center"><span class="val-${t.type==='income'?'inc':'exp'}">${t.type==='income'?'+':'-'}${t.amt.toLocaleString()} ₺</span><span onclick="deleteItem('transactions', ${t.id})" style="cursor:pointer; margin-left:10px; color:var(--danger)">×</span></div></div>`;
-            }
+            if(i < 10) hList.innerHTML += `<div class="list-item"><div><b>${t.cat}</b><br><small>${t.date}</small></div><div style="display:flex; align-items:center"><span class="val-${t.type==='income'?'inc':'exp'}">${t.type==='income'?'+':'-'}${t.amt.toLocaleString()} ₺</span><span onclick="deleteItem('transactions', ${t.id})" style="cursor:pointer; margin-left:10px; opacity:0.3">×</span></div></div>`;
         });
 
-        // Portföy ve Borçlar
-        const invList = document.getElementById('investmentList'); invList.innerHTML = "";
-        db.investments.forEach(i => { invTotal += i.val; invList.innerHTML += `<div class="list-item"><span>${i.name}</span><div><span class="val-inc">${i.val.toLocaleString()} ₺</span><span onclick="deleteItem('investments', ${i.id})" style="cursor:pointer; margin-left:10px; color:var(--danger)">×</span></div></div>`; });
+        const iList = document.getElementById('investmentList'); iList.innerHTML = "";
+        db.investments.forEach(i => { invT += i.val; iList.innerHTML += `<div class="list-item"><span>${i.name}</span><span class="val-inc">${i.val.toLocaleString()} ₺</span></div>`; });
 
         const dList = document.getElementById('debtList'); dList.innerHTML = "";
-        db.debts.forEach(d => { debtTotal += d.amt; dList.innerHTML += `<div class="list-item"><span>${d.name}</span><div><span class="val-exp">${d.amt.toLocaleString()} ₺</span><span onclick="deleteItem('debts', ${d.id})" style="cursor:pointer; margin-left:10px; color:var(--danger)">×</span></div></div>`; });
+        db.debts.forEach(d => { debtT += d.amt; dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="val-exp">${d.amt.toLocaleString()} ₺</span></div>`; });
 
-        // Temel Matematik
-        const totalA = income + invTotal;
-        const totalL = expense + debtTotal;
-        const netWorth = totalA - totalL;
-        
-        document.getElementById('netWorthDisplay').textContent = netWorth.toLocaleString() + " ₺";
-        document.getElementById('totalAssets').textContent = totalA.toLocaleString() + " ₺";
-        document.getElementById('totalLiabilities').textContent = totalL.toLocaleString() + " ₺";
+        const net = (inc + invT) - (exp + debtT);
+        document.getElementById('netWorthDisplay').textContent = net.toLocaleString() + " ₺";
+        document.getElementById('totalAssets').textContent = (inc + invT).toLocaleString() + " ₺";
+        document.getElementById('totalLiabilities').textContent = (exp + debtT).toLocaleString() + " ₺";
 
-        // 50/30/20 Hesaplama
-        let totalRuleAmt = needs + wants + saves;
-        if(totalRuleAmt > 0) {
-            let pN = Math.round((needs/totalRuleAmt)*100); let pW = Math.round((wants/totalRuleAmt)*100); let pS = Math.round((saves/totalRuleAmt)*100);
-            document.getElementById('barNeed').style.width = pN + "%"; document.getElementById('percNeed').textContent = "%" + pN;
-            document.getElementById('barWant').style.width = pW + "%"; document.getElementById('percWant').textContent = "%" + pW;
-            document.getElementById('barSave').style.width = pS + "%"; document.getElementById('percSave').textContent = "%" + pS;
+        let totalR = n + w + s;
+        if(totalR > 0) {
+            let pN = Math.round((n/totalR)*100), pW = Math.round((w/totalR)*100), pS = Math.round((s/totalR)*100);
+            document.getElementById('barNeed').style.width = pN+"%"; document.getElementById('percNeed').textContent = "%"+pN;
+            document.getElementById('barWant').style.width = pW+"%"; document.getElementById('percWant').textContent = "%"+pW;
+            document.getElementById('barSave').style.width = pS+"%"; document.getElementById('percSave').textContent = "%"+pS;
         }
 
-        // Oyunlaştırma (Rozet Kontrolleri)
         if(db.transactions.length > 0) document.getElementById('badgeStart').classList.add('active');
-        if(netWorth >= 10000) document.getElementById('badgeSaver').classList.add('active');
-        if(invTotal > 0) document.getElementById('badgeInvestor').classList.add('active');
-        if(debtTotal === 0 && db.transactions.length > 5) document.getElementById('badgeFree').classList.add('active');
+        if(net >= 10000) document.getElementById('badgeSaver').classList.add('active');
+        if(invT > 0) document.getElementById('badgeInvestor').classList.add('active');
+        if(debtT === 0 && db.transactions.length > 3) document.getElementById('badgeFree').classList.add('active');
 
-        // Enflasyon Ayarlı Projeksiyon (Varsayım: Aylık birikim devam eder, Yıllık Enflasyon/Değer kaybı %40)
-        let monthlySavings = income - expense;
-        if (monthlySavings > 0) {
-            let p1 = netWorth + (monthlySavings * 12);
-            let p5 = netWorth + (monthlySavings * 60);
-            // Enflasyon iskontosu (Basit reel alım gücü tahmini)
-            document.getElementById('proj1').textContent = (p1 * 0.85).toLocaleString(undefined, {maximumFractionDigits:0}) + " ₺ (Reel)";
-            document.getElementById('proj5').textContent = (p5 * 0.50).toLocaleString(undefined, {maximumFractionDigits:0}) + " ₺ (Reel)";
-        } else {
-            document.getElementById('proj1').textContent = "Birikim Yok"; document.getElementById('proj5').textContent = "Birikim Yok";
-        }
+        let monthlyS = inc - exp;
+        document.getElementById('proj5').textContent = monthlyS > 0 ? (net + (monthlyS * 60) * 0.5).toLocaleString(undefined, {maximumFractionDigits:0}) + " ₺" : "0 ₺";
 
-        updateChart(catStats);
-        runAI(monthlySavings, totalL, netWorth);
+        updateChart(cats);
+        document.getElementById('aiAdvice').textContent = monthlyS > 0 ? "Nakit akışınız pozitif, yatırıma ağırlık verin." : "Giderleriniz gelirinizi aşıyor, tasarruf yapmalısınız.";
     }
 
-    function runAI(savings, totalLiabilities, netWorth) {
-        const adv = document.getElementById('aiAdvice');
-        if (netWorth === 0 && savings === 0) return adv.textContent = "Analiz için veri girin.";
-        
-        let msg = "Yönetici Özeti: ";
-        if (savings > 0 && totalLiabilities === 0) msg += "Kusursuz ilerliyorsunuz. Borç yok, nakit akışı pozitif.";
-        else if (totalLiabilities > netWorth) msg += "⚠️
+    function updateChart(data) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#4361ee', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } } } });
+    }
+
+    function exportJSON() {
+        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "CFO_Yedek.json"; a.click();
+    }
+    function clearAll() { if(confirm("Tüm veriler silinsin mi?")) { localStorage.clear(); location.reload(); } }
+
+    document.getElementById('date').valueAsDate = new Date();
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    render();
+</script>
+</body>
+</html>
