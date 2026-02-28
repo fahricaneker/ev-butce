@@ -3,159 +3,179 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ev Bütçe Pro</title>
+<title>Ev Bütçe Pro+</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body {
-  font-family: Arial;
-  background:#f4f6f9;
-  padding:20px;
-}
-h2 { text-align:center; }
-.card {
-  background:white;
-  padding:15px;
-  margin-top:15px;
-  border-radius:10px;
-  box-shadow:0 4px 10px rgba(0,0,0,0.05);
-}
-input, select, button {
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border-radius:8px;
-  border:1px solid #ddd;
-}
-button {
-  background:#2e86de;
-  color:white;
-  border:none;
-}
-button:hover { opacity:0.9; }
-.list-item {
-  display:flex;
-  justify-content:space-between;
-  margin-top:8px;
-  padding:8px;
-  border-bottom:1px solid #eee;
-}
-.delete {
-  color:red;
-  cursor:pointer;
-}
-.progress {
-  background:#ddd;
-  border-radius:20px;
-  height:15px;
-  margin-top:10px;
-}
-.progress-bar {
-  height:100%;
-  background:#27ae60;
-  border-radius:20px;
-  width:0%;
-}
-.summary p { margin:5px 0; }
+body{font-family:Arial;background:#f4f6f9;padding:15px}
+h2{text-align:center}
+.card{background:#fff;padding:15px;margin-top:15px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+input,select,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ddd}
+button{background:#2e86de;color:#fff;border:none}
+button:hover{opacity:.9}
+.list-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
+.delete{color:red;cursor:pointer}
+.progress{background:#ddd;border-radius:20px;height:15px;margin-top:10px}
+.progress-bar{height:100%;background:#27ae60;border-radius:20px;width:0%}
+.summary p{margin:5px 0}
+.small{font-size:12px;color:#666}
 </style>
 </head>
 <body>
 
-<h2>Ev Bütçe Pro</h2>
+<h2>Ev Bütçe Pro+</h2>
 
 <div class="card">
-  <input id="amount" type="number" placeholder="Tutar">
-  <select id="type">
-    <option value="income">Gelir</option>
-    <option value="expense">Gider</option>
-  </select>
-  <input id="category" placeholder="Kategori (Kira, Market vb)">
-  <button onclick="addTransaction()">Ekle</button>
+<input id="amount" type="number" placeholder="Tutar">
+<select id="type">
+<option value="income">Gelir</option>
+<option value="expense">Gider</option>
+</select>
+<input id="category" placeholder="Kategori">
+<input id="date" type="date">
+<button onclick="addTransaction()">Ekle</button>
 </div>
 
 <div class="card summary">
-  <p>Toplam Gelir: <span id="income">0</span> ₺</p>
-  <p>Toplam Gider: <span id="expense">0</span> ₺</p>
-  <p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+<p>Toplam Gelir: <span id="income">0</span> ₺</p>
+<p>Toplam Gider: <span id="expense">0</span> ₺</p>
+<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
 </div>
 
 <div class="card">
-  <input id="goal" type="number" placeholder="Birikim Hedefi">
-  <button onclick="setGoal()">Hedef Belirle</button>
-  <div class="progress">
-    <div class="progress-bar" id="progressBar"></div>
-  </div>
-  <p>Hedef İlerlemesi: <span id="goalPercent">0</span>%</p>
+<input id="goal" type="number" placeholder="Birikim Hedefi">
+<button onclick="setGoal()">Hedef Belirle</button>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<p>Hedef: <span id="goalPercent">0</span>%</p>
 </div>
 
 <div class="card">
-  <h3>İşlemler</h3>
-  <div id="list"></div>
+<select id="monthFilter" onchange="updateUI()">
+<option value="all">Tüm Aylar</option>
+</select>
+<button onclick="exportCSV()">CSV Dışa Aktar</button>
+</div>
+
+<div class="card">
+<canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+<h3>İşlemler</h3>
+<div id="list"></div>
 </div>
 
 <script>
 let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
 let goal = Number(localStorage.getItem("goal")) || 0;
+let chart;
 
-function save() {
-  localStorage.setItem("transactions", JSON.stringify(transactions));
-  localStorage.setItem("goal", goal);
+function save(){
+localStorage.setItem("transactions",JSON.stringify(transactions));
+localStorage.setItem("goal",goal);
 }
 
-function addTransaction() {
-  const amount = Number(document.getElementById("amount").value);
-  const type = document.getElementById("type").value;
-  const category = document.getElementById("category").value;
-
-  if(!amount || !category) return;
-
-  transactions.push({ amount, type, category });
-  save();
-  updateUI();
-
-  document.getElementById("amount").value = "";
-  document.getElementById("category").value = "";
+function addTransaction(){
+const amount=Number(amountInput.value);
+const type=typeInput.value;
+const category=categoryInput.value;
+const date=dateInput.value;
+if(!amount||!category||!date)return;
+transactions.push({amount,type,category,date});
+save();
+updateUI();
+amountInput.value="";
+categoryInput.value="";
 }
 
-function deleteTransaction(index) {
-  transactions.splice(index,1);
-  save();
-  updateUI();
+function deleteTransaction(i){
+transactions.splice(i,1);
+save();
+updateUI();
 }
 
-function setGoal() {
-  goal = Number(document.getElementById("goal").value);
-  save();
-  updateUI();
+function setGoal(){
+goal=Number(goalInput.value);
+save();
+updateUI();
 }
 
-function updateUI() {
-  let income = 0;
-  let expense = 0;
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  transactions.forEach((t, index) => {
-    if(t.type === "income") income += t.amount;
-    else expense += t.amount;
-
-    list.innerHTML += `
-      <div class="list-item">
-        <span>${t.category} - ${t.amount} ₺</span>
-        <span class="delete" onclick="deleteTransaction(${index})">Sil</span>
-      </div>
-    `;
-  });
-
-  document.getElementById("income").textContent = income;
-  document.getElementById("expense").textContent = expense;
-  document.getElementById("balance").textContent = income - expense;
-
-  let percent = goal ? ((income - expense) / goal) * 100 : 0;
-  percent = percent > 100 ? 100 : percent;
-  percent = percent < 0 ? 0 : percent;
-
-  document.getElementById("progressBar").style.width = percent + "%";
-  document.getElementById("goalPercent").textContent = Math.round(percent);
+function populateMonths(){
+const select=monthFilter;
+let months=new Set();
+transactions.forEach(t=>{
+months.add(t.date.slice(0,7));
+});
+select.innerHTML='<option value="all">Tüm Aylar</option>';
+months.forEach(m=>{
+select.innerHTML+=`<option value="${m}">${m}</option>`;
+});
 }
+
+function exportCSV(){
+let csv="Tarih,Kategori,Tip,Tutar\n";
+transactions.forEach(t=>{
+csv+=`${t.date},${t.category},${t.type},${t.amount}\n`;
+});
+let blob=new Blob([csv],{type:"text/csv"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="butce.csv";
+a.click();
+}
+
+function updateUI(){
+populateMonths();
+let filter=monthFilter.value;
+let income=0,expense=0;
+list.innerHTML="";
+let filtered=transactions.filter(t=>{
+return filter==="all"||t.date.startsWith(filter);
+});
+filtered.forEach((t,i)=>{
+if(t.type==="income")income+=t.amount;
+else expense+=t.amount;
+list.innerHTML+=`
+<div class="list-item">
+<span>${t.date} | ${t.category} - ${t.amount} ₺</span>
+<span class="delete" onclick="deleteTransaction(${i})">Sil</span>
+</div>`;
+});
+incomeSpan.textContent=income;
+expenseSpan.textContent=expense;
+balanceSpan.textContent=income-expense;
+let percent=goal?((income-expense)/goal)*100:0;
+percent=Math.max(0,Math.min(100,percent));
+progressBar.style.width=percent+"%";
+goalPercent.textContent=Math.round(percent);
+drawChart(income,expense);
+}
+
+function drawChart(income,expense){
+if(chart)chart.destroy();
+chart=new Chart(document.getElementById("chart"),{
+type:"doughnut",
+data:{
+labels:["Gelir","Gider"],
+datasets:[{
+data:[income,expense],
+backgroundColor:["#27ae60","#e74c3c"]
+}]
+}
+});
+}
+
+const amountInput=document.getElementById("amount");
+const typeInput=document.getElementById("type");
+const categoryInput=document.getElementById("category");
+const dateInput=document.getElementById("date");
+const goalInput=document.getElementById("goal");
+const incomeSpan=document.getElementById("income");
+const expenseSpan=document.getElementById("expense");
+const balanceSpan=document.getElementById("balance");
+const progressBar=document.getElementById("progressBar");
+const goalPercent=document.getElementById("goalPercent");
+const list=document.getElementById("list");
+const monthFilter=document.getElementById("monthFilter");
 
 updateUI();
 </script>
