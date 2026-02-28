@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ev Bütçe MAX</title>
+<title>Ev Bütçe Ultra</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body{font-family:Arial;background:#f4f6f9;padding:15px}
@@ -16,24 +16,15 @@ button:hover{opacity:.9}
 .delete{color:red;cursor:pointer}
 .progress{background:#ddd;border-radius:20px;height:15px;margin-top:10px}
 .progress-bar{height:100%;background:#27ae60;border-radius:20px;width:0%}
-.alert{background:#ffeaa7;padding:10px;border-radius:8px;margin-top:10px}
-.small{font-size:12px;color:#666}
-.tab{display:flex;gap:5px;margin-top:10px}
-.tab button{flex:1}
+.stat{font-size:14px;color:#555;margin-top:5px}
 .hidden{display:none}
 </style>
 </head>
 <body>
 
-<h2>Ev Bütçe MAX</h2>
+<h2>Ev Bütçe Ultra</h2>
 
-<div class="tab">
-<button onclick="showTab('islem')">İşlem</button>
-<button onclick="showTab('fatura')">Fatura</button>
-<button onclick="showTab('rapor')">Rapor</button>
-</div>
-
-<div id="islem" class="card">
+<div class="card">
 <input id="amount" type="number" placeholder="Tutar">
 <select id="type">
 <option value="income">Gelir</option>
@@ -42,30 +33,38 @@ button:hover{opacity:.9}
 <input id="category" placeholder="Kategori">
 <input id="date" type="date">
 <button onclick="addTransaction()">Ekle</button>
-<div id="list"></div>
 </div>
 
-<div id="fatura" class="card hidden">
-<input id="billName" placeholder="Fatura Adı">
-<input id="billDate" type="date">
-<button onclick="addBill()">Fatura Ekle</button>
-<div id="billList"></div>
-<div id="billAlert"></div>
+<div class="card">
+<input id="search" placeholder="Kategori ara..." oninput="updateUI()">
 </div>
 
-<div id="rapor" class="card hidden">
+<div class="card">
 <p>Gelir: <span id="income">0</span> ₺</p>
 <p>Gider: <span id="expense">0</span> ₺</p>
 <p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+<p class="stat">En Çok Harcanan: <span id="topCategory">-</span></p>
+<p class="stat">Son 7 Gün Gider: <span id="last7">0</span> ₺</p>
+</div>
 
+<div class="card">
 <input id="goal" type="number" placeholder="Birikim Hedefi">
-<button onclick="setGoal()">Hedef</button>
+<button onclick="setGoal()">Hedef Belirle</button>
 <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
 <p>İlerleme: <span id="goalPercent">0</span>%</p>
+</div>
 
+<div class="card">
 <canvas id="pieChart"></canvas>
-<canvas id="barChart"></canvas>
+<canvas id="lineChart"></canvas>
+</div>
 
+<div class="card">
+<h3>İşlemler</h3>
+<div id="list"></div>
+</div>
+
+<div class="card">
 <button onclick="exportCSV()">CSV</button>
 <button onclick="backupJSON()">Yedek Al</button>
 <input type="file" onchange="restoreJSON(event)">
@@ -73,56 +72,41 @@ button:hover{opacity:.9}
 
 <script>
 let transactions=JSON.parse(localStorage.getItem("transactions"))||[];
-let bills=JSON.parse(localStorage.getItem("bills"))||[];
 let goal=Number(localStorage.getItem("goal"))||0;
-let pie,bar;
+let pie,line;
 
 function save(){
 localStorage.setItem("transactions",JSON.stringify(transactions));
-localStorage.setItem("bills",JSON.stringify(bills));
 localStorage.setItem("goal",goal);
 }
 
-function showTab(id){
-document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
-updateUI();
-}
-
 function addTransaction(){
-const amount=Number(amount.value);
-if(!amount||!category.value||!date.value)return;
-transactions.push({amount,type:type.value,category:category.value,date:date.value});
+if(!amount.value||!category.value||!date.value)return;
+transactions.push({
+amount:Number(amount.value),
+type:type.value,
+category:category.value,
+date:date.value
+});
 save();updateUI();
 amount.value="";category.value="";
 }
 
 function deleteTransaction(i){
-transactions.splice(i,1);save();updateUI();
-}
-
-function addBill(){
-if(!billName.value||!billDate.value)return;
-bills.push({name:billName.value,date:billDate.value});
+transactions.splice(i,1);
 save();updateUI();
-billName.value="";
 }
 
-function checkBills(){
-let today=new Date().toISOString().slice(0,10);
-billAlert.innerHTML="";
-bills.forEach(b=>{
-if(b.date===today){
-billAlert.innerHTML+=`<div class="alert">Bugün ${b.name} faturası var!</div>`;
+function setGoal(){
+goal=Number(goalInput.value);
+save();updateUI();
 }
-});
-}
-
-function setGoal(){goal=Number(goalInput.value);save();updateUI();}
 
 function exportCSV(){
 let csv="Tarih,Kategori,Tip,Tutar\n";
-transactions.forEach(t=>csv+=`${t.date},${t.category},${t.type},${t.amount}\n`);
+transactions.forEach(t=>{
+csv+=`${t.date},${t.category},${t.type},${t.amount}\n`;
+});
 let blob=new Blob([csv],{type:"text/csv"});
 let a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
@@ -131,8 +115,7 @@ a.click();
 }
 
 function backupJSON(){
-let data={transactions,bills,goal};
-let blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+let blob=new Blob([JSON.stringify({transactions,goal})],{type:"application/json"});
 let a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
 a.download="yedek.json";
@@ -140,78 +123,104 @@ a.click();
 }
 
 function restoreJSON(e){
-let file=e.target.files[0];
 let reader=new FileReader();
 reader.onload=function(){
 let data=JSON.parse(reader.result);
 transactions=data.transactions||[];
-bills=data.bills||[];
 goal=data.goal||0;
 save();updateUI();
-}
-reader.readAsText(file);
+};
+reader.readAsText(e.target.files[0]);
 }
 
 function updateUI(){
 let income=0,expense=0;
+let categories={};
+let last7=0;
+let searchTerm=search.value.toLowerCase();
 list.innerHTML="";
+
 transactions.forEach((t,i)=>{
-if(t.type==="income")income+=t.amount;else expense+=t.amount;
-list.innerHTML+=`<div class="list-item">
+if(searchTerm && !t.category.toLowerCase().includes(searchTerm))return;
+
+if(t.type==="income")income+=t.amount;
+else{
+expense+=t.amount;
+let diff=(new Date()-new Date(t.date))/(1000*60*60*24);
+if(diff<=7)last7+=t.amount;
+}
+
+if(!categories[t.category])categories[t.category]=0;
+if(t.type==="expense")categories[t.category]+=t.amount;
+
+list.innerHTML+=`
+<div class="list-item">
 <span>${t.date} | ${t.category} - ${t.amount}₺</span>
 <span class="delete" onclick="deleteTransaction(${i})">Sil</span>
 </div>`;
 });
+
 incomeSpan.textContent=income;
 expenseSpan.textContent=expense;
 balanceSpan.textContent=income-expense;
+last7Span.textContent=last7;
+
+let top="-";
+let max=0;
+for(let c in categories){
+if(categories[c]>max){max=categories[c];top=c;}
+}
+topCategory.textContent=top;
 
 let percent=goal?((income-expense)/goal)*100:0;
 percent=Math.max(0,Math.min(100,percent));
 progressBar.style.width=percent+"%";
 goalPercent.textContent=Math.round(percent);
 
-drawCharts();
-checkBills();
+drawCharts(income,expense);
 }
 
-function drawCharts(){
+function drawCharts(income,expense){
 if(pie)pie.destroy();
-if(bar)bar.destroy();
+if(line)line.destroy();
 
-let income=transactions.filter(t=>t.type==="income").reduce((a,b)=>a+b.amount,0);
-let expense=transactions.filter(t=>t.type==="expense").reduce((a,b)=>a+b.amount,0);
-
-pie=new Chart(pieChart,{type:"doughnut",
+pie=new Chart(pieChart,{
+type:"doughnut",
 data:{labels:["Gelir","Gider"],
-datasets:[{data:[income,expense],backgroundColor:["#27ae60","#e74c3c"]}]}});
-
-let categories={};
-transactions.forEach(t=>{
-if(!categories[t.category])categories[t.category]=0;
-categories[t.category]+=t.amount;
+datasets:[{data:[income,expense],backgroundColor:["#27ae60","#e74c3c"]}]}
 });
-bar=new Chart(barChart,{type:"bar",
-data:{labels:Object.keys(categories),
-datasets:[{data:Object.values(categories),backgroundColor:"#2e86de"}]}});
+
+let daily={};
+transactions.forEach(t=>{
+if(!daily[t.date])daily[t.date]=0;
+daily[t.date]+=t.type==="income"?t.amount:-t.amount;
+});
+
+line=new Chart(lineChart,{
+type:"line",
+data:{
+labels:Object.keys(daily),
+datasets:[{data:Object.values(daily),borderColor:"#2e86de",fill:false}]
+}
+});
 }
 
 const amount=document.getElementById("amount");
 const type=document.getElementById("type");
 const category=document.getElementById("category");
 const date=document.getElementById("date");
-const billName=document.getElementById("billName");
-const billDate=document.getElementById("billDate");
-const billAlert=document.getElementById("billAlert");
-const list=document.getElementById("list");
+const search=document.getElementById("search");
 const incomeSpan=document.getElementById("income");
 const expenseSpan=document.getElementById("expense");
 const balanceSpan=document.getElementById("balance");
+const topCategory=document.getElementById("topCategory");
+const last7Span=document.getElementById("last7");
+const goalInput=document.getElementById("goal");
 const progressBar=document.getElementById("progressBar");
 const goalPercent=document.getElementById("goalPercent");
-const goalInput=document.getElementById("goal");
+const list=document.getElementById("list");
 const pieChart=document.getElementById("pieChart");
-const barChart=document.getElementById("barChart");
+const lineChart=document.getElementById("lineChart");
 
 updateUI();
 </script>
