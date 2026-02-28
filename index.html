@@ -1,57 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Basit Ev Bütçe</title>
-
+<title>Ev Bütçe Pro</title>
 <style>
-body { font-family: Arial; padding:20px; }
-input, button { width:100%; padding:10px; margin:5px 0; }
-.card { border:1px solid #ddd; padding:15px; margin-top:10px; }
+body {
+  font-family: Arial;
+  background:#f4f6f9;
+  padding:20px;
+}
 h2 { text-align:center; }
+.card {
+  background:white;
+  padding:15px;
+  margin-top:15px;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+input, select, button {
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+button {
+  background:#2e86de;
+  color:white;
+  border:none;
+}
+button:hover { opacity:0.9; }
+.list-item {
+  display:flex;
+  justify-content:space-between;
+  margin-top:8px;
+  padding:8px;
+  border-bottom:1px solid #eee;
+}
+.delete {
+  color:red;
+  cursor:pointer;
+}
+.progress {
+  background:#ddd;
+  border-radius:20px;
+  height:15px;
+  margin-top:10px;
+}
+.progress-bar {
+  height:100%;
+  background:#27ae60;
+  border-radius:20px;
+  width:0%;
+}
+.summary p { margin:5px 0; }
 </style>
 </head>
 <body>
 
-<h2>Ev Bütçe</h2>
-
-<input id="amount" type="number" placeholder="Tutar gir">
-<button onclick="addIncome()">Gelir Ekle</button>
-<button onclick="addExpense()">Gider Ekle</button>
+<h2>Ev Bütçe Pro</h2>
 
 <div class="card">
-<p>Toplam Gelir: <span id="income">0</span> ₺</p>
-<p>Toplam Gider: <span id="expense">0</span> ₺</p>
-<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+  <input id="amount" type="number" placeholder="Tutar">
+  <select id="type">
+    <option value="income">Gelir</option>
+    <option value="expense">Gider</option>
+  </select>
+  <input id="category" placeholder="Kategori (Kira, Market vb)">
+  <button onclick="addTransaction()">Ekle</button>
+</div>
+
+<div class="card summary">
+  <p>Toplam Gelir: <span id="income">0</span> ₺</p>
+  <p>Toplam Gider: <span id="expense">0</span> ₺</p>
+  <p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+</div>
+
+<div class="card">
+  <input id="goal" type="number" placeholder="Birikim Hedefi">
+  <button onclick="setGoal()">Hedef Belirle</button>
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <p>Hedef İlerlemesi: <span id="goalPercent">0</span>%</p>
+</div>
+
+<div class="card">
+  <h3>İşlemler</h3>
+  <div id="list"></div>
 </div>
 
 <script>
-let income = Number(localStorage.getItem("income")) || 0;
-let expense = Number(localStorage.getItem("expense")) || 0;
+let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+let goal = Number(localStorage.getItem("goal")) || 0;
 
-function updateUI(){
-document.getElementById("income").textContent = income;
-document.getElementById("expense").textContent = expense;
-document.getElementById("balance").textContent = income - expense;
+function save() {
+  localStorage.setItem("transactions", JSON.stringify(transactions));
+  localStorage.setItem("goal", goal);
 }
 
-function addIncome(){
-let val = Number(document.getElementById("amount").value);
-if(!val) return;
-income += val;
-localStorage.setItem("income", income);
-updateUI();
-document.getElementById("amount").value = "";
+function addTransaction() {
+  const amount = Number(document.getElementById("amount").value);
+  const type = document.getElementById("type").value;
+  const category = document.getElementById("category").value;
+
+  if(!amount || !category) return;
+
+  transactions.push({ amount, type, category });
+  save();
+  updateUI();
+
+  document.getElementById("amount").value = "";
+  document.getElementById("category").value = "";
 }
 
-function addExpense(){
-let val = Number(document.getElementById("amount").value);
-if(!val) return;
-expense += val;
-localStorage.setItem("expense", expense);
-updateUI();
-document.getElementById("amount").value = "";
+function deleteTransaction(index) {
+  transactions.splice(index,1);
+  save();
+  updateUI();
+}
+
+function setGoal() {
+  goal = Number(document.getElementById("goal").value);
+  save();
+  updateUI();
+}
+
+function updateUI() {
+  let income = 0;
+  let expense = 0;
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  transactions.forEach((t, index) => {
+    if(t.type === "income") income += t.amount;
+    else expense += t.amount;
+
+    list.innerHTML += `
+      <div class="list-item">
+        <span>${t.category} - ${t.amount} ₺</span>
+        <span class="delete" onclick="deleteTransaction(${index})">Sil</span>
+      </div>
+    `;
+  });
+
+  document.getElementById("income").textContent = income;
+  document.getElementById("expense").textContent = expense;
+  document.getElementById("balance").textContent = income - expense;
+
+  let percent = goal ? ((income - expense) / goal) * 100 : 0;
+  percent = percent > 100 ? 100 : percent;
+  percent = percent < 0 ? 0 : percent;
+
+  document.getElementById("progressBar").style.width = percent + "%";
+  document.getElementById("goalPercent").textContent = Math.round(percent);
 }
 
 updateUI();
