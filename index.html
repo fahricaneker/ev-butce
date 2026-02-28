@@ -1,228 +1,294 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ev Bütçe Ultra</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body{font-family:Arial;background:#f4f6f9;padding:15px}
-h2{text-align:center}
-.card{background:#fff;padding:15px;margin-top:15px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
-input,select,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ddd}
-button{background:#2e86de;color:#fff;border:none}
-button:hover{opacity:.9}
-.list-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;font-size:14px}
-.delete{color:red;cursor:pointer}
-.progress{background:#ddd;border-radius:20px;height:15px;margin-top:10px}
-.progress-bar{height:100%;background:#27ae60;border-radius:20px;width:0%}
-.stat{font-size:14px;color:#555;margin-top:5px}
-.hidden{display:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ev Bütçe Ultra</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2e86de;
+            --secondary: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f6f9;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); padding: 15px; color: #333; }
+        h2 { text-align: center; color: #2c3e50; }
+        .card { background: #fff; padding: 20px; margin-top: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,.08); }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 14px; }
+        button { background: var(--primary); color: #fff; border: none; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
+        button:hover { opacity: .9; }
+        .btn-secondary { background: #7f8c8d; margin-top: 5px; }
+        
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .delete { color: var(--danger); cursor: pointer; font-weight: bold; padding: 5px; }
+        .delete:hover { background: #fee; border-radius: 4px; }
+        
+        .progress { background: #eee; border-radius: 20px; height: 18px; margin-top: 15px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--secondary); width: 0%; transition: width 0.5s ease-in-out; }
+        
+        .stat-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .stat-box { padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 13px; }
+        .balance-box { text-align: center; font-size: 18px; margin: 15px 0; border-top: 1px solid #eee; pt: 10px; }
+        
+        canvas { max-height: 300px; margin-top: 20px; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
 
-<h2>Ev Bütçe Ultra</h2>
+    <h2>🏠 Ev Bütçe Ultra</h2>
 
-<div class="card">
-<input id="amount" type="number" placeholder="Tutar">
-<select id="type">
-<option value="income">Gelir</option>
-<option value="expense">Gider</option>
-</select>
-<input id="category" placeholder="Kategori">
-<input id="date" type="date">
-<button onclick="addTransaction()">Ekle</button>
-</div>
+    <div class="card">
+        <input id="amountInput" type="number" placeholder="Tutar (₺)">
+        <select id="typeInput">
+            <option value="income">Gelir (+)</option>
+            <option value="expense">Gider (-)</option>
+        </select>
+        <input id="categoryInput" placeholder="Kategori (Örn: Market, Maaş)">
+        <input id="dateInput" type="date">
+        <button onclick="addTransaction()">İşlemi Ekle</button>
+    </div>
 
-<div class="card">
-<input id="search" placeholder="Kategori ara..." oninput="updateUI()">
-</div>
+    <div class="card">
+        <input id="searchInput" placeholder="Kategoriye göre ara..." oninput="updateUI()">
+    </div>
 
-<div class="card">
-<p>Gelir: <span id="income">0</span> ₺</p>
-<p>Gider: <span id="expense">0</span> ₺</p>
-<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
-<p class="stat">En Çok Harcanan: <span id="topCategory">-</span></p>
-<p class="stat">Son 7 Gün Gider: <span id="last7">0</span> ₺</p>
-</div>
+    <div class="card">
+        <div class="stat-grid">
+            <div class="stat-box">Gelir: <br><b id="incomeSpan" style="color:var(--secondary)">0</b> ₺</div>
+            <div class="stat-box">Gider: <br><b id="expenseSpan" style="color:var(--danger)">0</b> ₺</div>
+        </div>
+        <div class="balance-box">
+            <b>Net Kalan: <span id="balanceSpan">0</span> ₺</b>
+        </div>
+        <p class="stat-box">🔥 En Çok Harcanan: <span id="topCategory">-</span></p>
+        <p class="stat-box">📅 Son 7 Gün Gider: <span id="last7">0</span> ₺</p>
+    </div>
 
-<div class="card">
-<input id="goal" type="number" placeholder="Birikim Hedefi">
-<button onclick="setGoal()">Hedef Belirle</button>
-<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-<p>İlerleme: <span id="goalPercent">0</span>%</p>
-</div>
+    <div class="card">
+        <input id="goalInput" type="number" placeholder="Birikim Hedefinizi Girin">
+        <button onclick="setGoal()">Hedef Belirle</button>
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+        <p style="text-align:center; font-size:14px; margin-top:5px;">Hedef İlerlemesi: %<span id="goalPercent">0</span></p>
+    </div>
 
-<div class="card">
-<canvas id="pieChart"></canvas>
-<canvas id="lineChart"></canvas>
-</div>
+    <div class="card">
+        <canvas id="pieChart"></canvas>
+        <canvas id="lineChart"></canvas>
+    </div>
 
-<div class="card">
-<h3>İşlemler</h3>
-<div id="list"></div>
-</div>
+    <div class="card">
+        <h3>İşlem Geçmişi</h3>
+        <div id="listContainer"></div>
+    </div>
 
-<div class="card">
-<button onclick="exportCSV()">CSV</button>
-<button onclick="backupJSON()">Yedek Al</button>
-<input type="file" onchange="restoreJSON(event)">
-</div>
+    <div class="card" style="display: flex; gap: 5px; flex-wrap: wrap;">
+        <button onclick="exportCSV()" style="flex:1">CSV İndir</button>
+        <button onclick="backupJSON()" style="flex:1" class="btn-secondary">Yedek Al</button>
+        <input type="file" id="fileInput" onchange="restoreJSON(event)" style="display:none">
+        <button onclick="document.getElementById('fileInput').click()" style="flex:1" class="btn-secondary">Yedeği Yükle</button>
+    </div>
 
 <script>
-let transactions=JSON.parse(localStorage.getItem("transactions"))||[];
-let goal=Number(localStorage.getItem("goal"))||0;
-let pie,line;
+    // Elementleri Seçelim
+    const amountInput = document.getElementById("amountInput");
+    const typeInput = document.getElementById("typeInput");
+    const categoryInput = document.getElementById("categoryInput");
+    const dateInput = document.getElementById("dateInput");
+    const searchInput = document.getElementById("searchInput");
+    const incomeSpan = document.getElementById("incomeSpan");
+    const expenseSpan = document.getElementById("expenseSpan");
+    const balanceSpan = document.getElementById("balanceSpan");
+    const topCategory = document.getElementById("topCategory");
+    const last7Span = document.getElementById("last7");
+    const goalInput = document.getElementById("goalInput");
+    const progressBar = document.getElementById("progressBar");
+    const goalPercent = document.getElementById("goalPercent");
+    const listContainer = document.getElementById("listContainer");
+    const pieChartCtx = document.getElementById("pieChart");
+    const lineChartCtx = document.getElementById("lineChart");
 
-function save(){
-localStorage.setItem("transactions",JSON.stringify(transactions));
-localStorage.setItem("goal",goal);
-}
+    let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+    let goal = Number(localStorage.getItem("goal")) || 0;
+    let pie, line;
 
-function addTransaction(){
-if(!amount.value||!category.value||!date.value)return;
-transactions.push({
-amount:Number(amount.value),
-type:type.value,
-category:category.value,
-date:date.value
-});
-save();updateUI();
-amount.value="";category.value="";
-}
+    // Veriyi Kaydet
+    function save() {
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        localStorage.setItem("goal", goal);
+    }
 
-function deleteTransaction(i){
-transactions.splice(i,1);
-save();updateUI();
-}
+    // Yeni İşlem Ekle
+    function addTransaction() {
+        const val = Number(amountInput.value);
+        if (!val || !categoryInput.value || !dateInput.value) {
+            alert("Lütfen tüm alanları doldurun!");
+            return;
+        }
 
-function setGoal(){
-goal=Number(goalInput.value);
-save();updateUI();
-}
+        transactions.push({
+            amount: val,
+            type: typeInput.value,
+            category: categoryInput.value,
+            date: dateInput.value
+        });
 
-function exportCSV(){
-let csv="Tarih,Kategori,Tip,Tutar\n";
-transactions.forEach(t=>{
-csv+=`${t.date},${t.category},${t.type},${t.amount}\n`;
-});
-let blob=new Blob([csv],{type:"text/csv"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="butce.csv";
-a.click();
-}
+        // Tarihe göre sırala (Yeni en üstte)
+        transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-function backupJSON(){
-let blob=new Blob([JSON.stringify({transactions,goal})],{type:"application/json"});
-let a=document.createElement("a");
-a.href=URL.createObjectURL(blob);
-a.download="yedek.json";
-a.click();
-}
+        save();
+        updateUI();
+        
+        amountInput.value = ""; 
+        categoryInput.value = "";
+    }
 
-function restoreJSON(e){
-let reader=new FileReader();
-reader.onload=function(){
-let data=JSON.parse(reader.result);
-transactions=data.transactions||[];
-goal=data.goal||0;
-save();updateUI();
-};
-reader.readAsText(e.target.files[0]);
-}
+    function deleteTransaction(i) {
+        if(confirm("Bu işlemi silmek istediğinize emin misiniz?")) {
+            transactions.splice(i, 1);
+            save();
+            updateUI();
+        }
+    }
 
-function updateUI(){
-let income=0,expense=0;
-let categories={};
-let last7=0;
-let searchTerm=search.value.toLowerCase();
-list.innerHTML="";
+    function setGoal() {
+        goal = Number(goalInput.value);
+        save();
+        updateUI();
+    }
 
-transactions.forEach((t,i)=>{
-if(searchTerm && !t.category.toLowerCase().includes(searchTerm))return;
+    // Arayüzü Güncelle
+    function updateUI() {
+        let income = 0, expense = 0, last7 = 0;
+        let expenseCategories = {};
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        listContainer.innerHTML = "";
 
-if(t.type==="income")income+=t.amount;
-else{
-expense+=t.amount;
-let diff=(new Date()-new Date(t.date))/(1000*60*60*24);
-if(diff<=7)last7+=t.amount;
-}
+        transactions.forEach((t, i) => {
+            if (searchTerm && !t.category.toLowerCase().includes(searchTerm)) return;
 
-if(!categories[t.category])categories[t.category]=0;
-if(t.type==="expense")categories[t.category]+=t.amount;
+            if (t.type === "income") {
+                income += t.amount;
+            } else {
+                expense += t.amount;
+                // Son 7 gün gideri
+                let diff = (new Date() - new Date(t.date)) / (1000 * 60 * 60 * 24);
+                if (diff <= 7 && diff >= 0) last7 += t.amount;
+                // Kategori bazlı gider (Pasta grafiği için)
+                expenseCategories[t.category] = (expenseCategories[t.category] || 0) + t.amount;
+            }
 
-list.innerHTML+=`
-<div class="list-item">
-<span>${t.date} | ${t.category} - ${t.amount}₺</span>
-<span class="delete" onclick="deleteTransaction(${i})">Sil</span>
-</div>`;
-});
+            listContainer.innerHTML += `
+                <div class="list-item">
+                    <span><strong>${t.date}</strong> | ${t.category}</span>
+                    <span style="color: ${t.type === 'income' ? '#27ae60' : '#e74c3c'}">
+                        ${t.type === 'income' ? '+' : '-'}${t.amount.toLocaleString()} ₺
+                        <span class="delete" onclick="deleteTransaction(${i})"> ✕</span>
+                    </span>
+                </div>`;
+        });
 
-incomeSpan.textContent=income;
-expenseSpan.textContent=expense;
-balanceSpan.textContent=income-expense;
-last7Span.textContent=last7;
+        // İstatistikleri Yazdır
+        const balance = income - expense;
+        incomeSpan.textContent = income.toLocaleString();
+        expenseSpan.textContent = expense.toLocaleString();
+        balanceSpan.textContent = balance.toLocaleString();
+        balanceSpan.style.color = balance < 0 ? "#e74c3c" : "#2d3436";
+        last7Span.textContent = last7.toLocaleString();
 
-let top="-";
-let max=0;
-for(let c in categories){
-if(categories[c]>max){max=categories[c];top=c;}
-}
-topCategory.textContent=top;
+        // En çok harcanan kategori bulma
+        let top = Object.keys(expenseCategories).reduce((a, b) => expenseCategories[a] > expenseCategories[b] ? a : b, "-");
+        topCategory.textContent = top;
 
-let percent=goal?((income-expense)/goal)*100:0;
-percent=Math.max(0,Math.min(100,percent));
-progressBar.style.width=percent+"%";
-goalPercent.textContent=Math.round(percent);
+        // Hedef Barı
+        let percent = goal > 0 ? (balance / goal) * 100 : 0;
+        percent = Math.max(0, Math.min(100, percent));
+        progressBar.style.width = percent + "%";
+        goalPercent.textContent = Math.round(percent);
 
-drawCharts(income,expense);
-}
+        drawCharts(income, expense, expenseCategories);
+    }
 
-function drawCharts(income,expense){
-if(pie)pie.destroy();
-if(line)line.destroy();
+    // Grafik Çizimi
+    function drawCharts(income, expense, expenseCategories) {
+        if (pie) pie.destroy();
+        if (line) line.destroy();
 
-pie=new Chart(pieChart,{
-type:"doughnut",
-data:{labels:["Gelir","Gider"],
-datasets:[{data:[income,expense],backgroundColor:["#27ae60","#e74c3c"]}]}
-});
+        // Pasta Grafiği: Gider Dağılımı
+        pie = new Chart(pieChartCtx, {
+            type: "doughnut",
+            data: {
+                labels: Object.keys(expenseCategories).length ? Object.keys(expenseCategories) : ["Veri Yok"],
+                datasets: [{
+                    data: Object.keys(expenseCategories).length ? Object.values(expenseCategories) : [1],
+                    backgroundColor: ["#3498db", "#9b59b6", "#f1c40f", "#e67e22", "#1abc9c", "#e74c3c"]
+                }]
+            },
+            options: { 
+                responsive: true,
+                plugins: { title: { display: true, text: 'Giderler (Kategori Bazlı)' } } 
+            }
+        });
 
-let daily={};
-transactions.forEach(t=>{
-if(!daily[t.date])daily[t.date]=0;
-daily[t.date]+=t.type==="income"?t.amount:-t.amount;
-});
+        // Çizgi Grafiği: Günlük Gidişat
+        let daily = {};
+        [...transactions].reverse().forEach(t => {
+            daily[t.date] = (daily[t.date] || 0) + (t.type === "income" ? t.amount : -t.amount);
+        });
 
-line=new Chart(lineChart,{
-type:"line",
-data:{
-labels:Object.keys(daily),
-datasets:[{data:Object.values(daily),borderColor:"#2e86de",fill:false}]
-}
-});
-}
+        line = new Chart(lineChartCtx, {
+            type: "line",
+            data: {
+                labels: Object.keys(daily),
+                datasets: [{
+                    label: "Günlük Durum (₺)",
+                    data: Object.values(daily),
+                    borderColor: "#2e86de",
+                    backgroundColor: "rgba(46, 134, 222, 0.1)",
+                    fill: true,
+                    tension: 0.3
+                }]
+            }
+        });
+    }
 
-const amount=document.getElementById("amount");
-const type=document.getElementById("type");
-const category=document.getElementById("category");
-const date=document.getElementById("date");
-const search=document.getElementById("search");
-const incomeSpan=document.getElementById("income");
-const expenseSpan=document.getElementById("expense");
-const balanceSpan=document.getElementById("balance");
-const topCategory=document.getElementById("topCategory");
-const last7Span=document.getElementById("last7");
-const goalInput=document.getElementById("goal");
-const progressBar=document.getElementById("progressBar");
-const goalPercent=document.getElementById("goalPercent");
-const list=document.getElementById("list");
-const pieChart=document.getElementById("pieChart");
-const lineChart=document.getElementById("lineChart");
+    // Dışa Aktarma Fonksiyonları
+    function exportCSV() {
+        let csv = "\uFEFFTarih,Kategori,Tip,Tutar\n"; // Türkçe karakter desteği için BOM eklendi
+        transactions.forEach(t => csv += `${t.date},${t.category},${t.type},${t.amount}\n`);
+        let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "butce_ozeti.csv";
+        a.click();
+    }
 
-updateUI();
+    function backupJSON() {
+        let data = JSON.stringify({ transactions, goal });
+        let blob = new Blob([data], { type: "application/json" });
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "butce_yedek.json";
+        a.click();
+    }
+
+    function restoreJSON(e) {
+        let reader = new FileReader();
+        reader.onload = function() {
+            let data = JSON.parse(reader.result);
+            transactions = data.transactions || [];
+            goal = data.goal || 0;
+            save();
+            updateUI();
+            alert("Yedek başarıyla yüklendi!");
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    // Sayfa Açılışında Başlat
+    updateUI();
 </script>
 
 </body>
