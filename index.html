@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fahrican EKER</title>
+    <title>Kişisel CFO: Akıllı Analiz</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -15,272 +15,252 @@
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; font-size: 13px; }
         .container { max-width: 1450px; margin: 0 auto; }
-        
-        .grid { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; }
-        @media (max-width: 1200px) { .grid { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-
+        .grid { display: grid; grid-template-columns: 350px 1fr 350px; gap: 20px; }
         .card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
-        .card h3 { margin: 0 0 15px 0; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--success); display: flex; align-items: center; justify-content: space-between; }
-
-        .net-worth { font-size: 36px; font-weight: 800; color: #fff; margin: 5px 0 15px 0; letter-spacing: -1px; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; border: 1px solid var(--border); }
-        .stat-label { font-size: 11px; color: var(--text-dim); }
-        .stat-val { font-size: 15px; font-weight: 700; margin-top: 5px; display: block; }
-
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; outline: none; margin-bottom: 10px; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
+        .card h3 { margin: 0 0 15px 0; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--info); letter-spacing: 1px; }
+        .net-worth { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 10px; }
         
+        /* AI Analiz Kutusu Stili */
+        .ai-box { background: rgba(59, 130, 246, 0.1); border: 1px solid var(--info); border-radius: 12px; padding: 15px; }
+        .ai-status { display: flex; align-items: center; gap: 8px; font-weight: 700; margin-bottom: 8px; font-size: 12px; }
+        .ai-msg { line-height: 1.6; color: #e2e8f0; font-size: 12.5px; }
+        .ai-alert { color: var(--danger); font-weight: 600; }
+
+        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: #fff; margin-bottom: 10px; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; background: var(--primary); color: white; transition: 0.2s; }
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--border); }
         .val-inc { color: var(--success); } .val-exp { color: var(--danger); }
-
-        .rule-bar-container { display: flex; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 10px; background: var(--border); }
-        .rule-segment { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #000; transition: width 0.5s; }
         
-        .badges-container { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-        .badge { background: #334155; padding: 8px 12px; border-radius: 20px; font-size: 11px; display: flex; align-items: center; gap: 5px; opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
-        .badge.active { background: linear-gradient(45deg, var(--warning), #fbbf24); color: #000; opacity: 1; filter: grayscale(0%); font-weight: bold; box-shadow: 0 0 10px rgba(245,158,11,0.5); }
-
-        @media print {
-            body { background: white; color: black; padding: 0; }
-            .container { max-width: 100%; }
-            .grid { grid-template-columns: 1fr; gap: 10px; }
-            .card { break-inside: avoid; border: 1px solid #ccc; background: white; color: black; margin-bottom: 10px; padding: 15px; }
-            button, input, select, .no-print { display: none !important; }
-            .net-worth { color: black; }
-        }
+        @media (max-width: 1000px) { .grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <div>
-            <h1 style="margin:0; font-size: 24px; letter-spacing: -1px;">KİŞİSEL <span style="color:var(--primary)">CFO PRO MAX</span></h1>
-            <span id="currentDate" style="color:var(--text-dim); font-size: 12px;"></span>
-        </div>
-        <div style="display: flex; gap: 10px;" class="no-print">
-            <button onclick="window.print()" style="background:var(--success); color:#000; width:auto;">📄 PDF RAPORU AL</button>
-            <button onclick="exportJSON()" style="background:var(--card); border:1px solid var(--border); width:auto;">YEDEKLE</button>
-            <button onclick="clearAll()" style="background:var(--danger); width:auto;">SIFIRLA</button>
-        </div>
+        <h1 style="margin:0; font-size: 22px;">KİŞİSEL <span style="color:var(--primary)">CFO PRO</span></h1>
+        <button onclick="clearAll()" style="width:auto; background:none; color:var(--text-dim); border:1px solid var(--border); padding: 5px 15px;">Sıfırla</button>
     </header>
 
     <div class="grid">
         <div class="col">
-            <div class="card" style="border-top: 4px solid var(--primary);">
-                <h3>🚀 NET VARLIK</h3>
+            <div class="card">
+                <h3>💰 NET VARLIK</h3>
                 <div class="net-worth" id="netWorthDisplay">0 ₺</div>
-                <div class="stat-grid">
-                    <div class="stat-box"><span class="stat-label">Toplam Varlıklar</span><span id="totalAssets" class="stat-val val-inc">0</span></div>
-                    <div class="stat-box"><span class="stat-label">Toplam Borçlar</span><span id="totalLiabilities" class="stat-val val-exp">0</span></div>
-                </div>
+                <div id="assetLiabInfo" style="font-size: 11px; color: var(--text-dim);"></div>
             </div>
 
             <div class="card">
-                <h3>🏆 BAŞARI ROZETLERİ</h3>
-                <div class="badges-container">
-                    <div class="badge" id="badgeStart">🌱 Başlangıç</div>
-                    <div class="badge" id="badgeSaver">💰 10K Birikim</div>
-                    <div class="badge" id="badgeInvestor">📈 Yatırımcı</div>
-                    <div class="badge" id="badgeFree">⚔️ Borçsuz</div>
+                <h3>🤖 CFO ANALİZ RAPORU</h3>
+                <div class="ai-box">
+                    <div id="aiStatus" class="ai-status">
+                        <span style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></span>
+                        SİSTEM AKTİF
+                    </div>
+                    <div id="aiReport" class="ai-msg">Veri girişi yapıldığında gerçek zamanlı analiz burada görünecek.</div>
                 </div>
-            </div>
-
-            <div class="card">
-                <h3>⚖️ 50/30/20 ANALİZİ</h3>
-                <div class="rule-bar-container">
-                    <div id="barNeed" class="rule-segment" style="background:var(--info); width:0%;"></div>
-                    <div id="barWant" class="rule-segment" style="background:var(--warning); width:0%;"></div>
-                    <div id="barSave" class="rule-segment" style="background:var(--success); width:0%;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 10px; margin-top: 8px; color: var(--text-dim);">
-                    <span>İhtiyaç: <span id="percNeed">%0</span></span>
-                    <span>İstek: <span id="percWant">%0</span></span>
-                    <span>Tasarruf: <span id="percSave">%0</span></span>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h3>🤖 AI FİNANSAL ANALİZ</h3>
-                <div id="aiAdvice" style="font-style: italic; color: var(--success); line-height: 1.5;">Veri bekleniyor...</div>
-            </div>
-        </div>
-
-        <div class="col">
-            <div class="card">
-                <h3>💳 İŞLEM MERKEZİ</h3>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <input type="number" id="amount" placeholder="Tutar (₺)">
-                    <select id="type"><option value="expense">Gider (-)</option><option value="income">Gelir (+)</option></select>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <select id="categorySelect"></select>
-                    <select id="needWantSelect"><option value="need">Zorunlu İhtiyaç</option><option value="want">Keyfi İstek</option><option value="save">Yatırım/Birikim</option></select>
-                </div>
-                <input type="text" id="note" placeholder="Açıklama (Örn: Market alışverişi)">
-                <input type="date" id="date">
-                <button onclick="addTransaction()">İŞLEMİ KAYDET</button>
             </div>
 
             <div class="card">
                 <h3>📈 HARCAMA DAĞILIMI</h3>
-                <canvas id="mainChart" style="max-height: 220px;"></canvas>
-            </div>
-
-            <div class="card">
-                <h3>📜 SON İŞLEMLER</h3>
-                <div id="historyList" style="max-height: 300px; overflow-y: auto;"></div>
+                <canvas id="mainChart"></canvas>
             </div>
         </div>
 
         <div class="col">
             <div class="card">
-                <h3>🏷️ KATEGORİ EKLE</h3>
-                <div style="display: flex; gap: 5px;">
-                    <input type="text" id="newCatName" placeholder="Yeni..." style="margin:0">
-                    <button onclick="addCategory()" style="width: 60px;">EKLE</button>
+                <h3>💳 YENİ İŞLEM</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="number" id="amount" placeholder="Tutar (₺)">
+                    <select id="type">
+                        <option value="expense">Gider / Borç Ödeme (-)</option>
+                        <option value="income">Gelir (+)</option>
+                    </select>
                 </div>
-                <div id="categoryTags" style="margin-top: 10px; display: flex; flex-wrap: wrap;"></div>
+                <select id="categorySelect"></select>
+                <input type="text" id="note" placeholder="Not (Opsiyonel)">
+                <input type="date" id="date">
+                <button onclick="addTransaction()">KAYDET</button>
             </div>
 
             <div class="card">
-                <h3>💎 YATIRIM PORTFÖYÜ</h3>
-                <div style="display: flex; gap: 5px;">
+                <h3>📜 SON İŞLEMLER</h3>
+                <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card" style="border-top: 3px solid var(--danger);">
+                <h3>📉 AKTİF BORÇLAR</h3>
+                <div style="display: flex; gap: 5px; margin-bottom:10px;">
+                    <input type="text" id="debtName" placeholder="Borç Adı" style="margin:0">
+                    <input type="number" id="debtAmt" placeholder="₺" style="margin:0; width: 80px;">
+                    <button onclick="addDebt()" style="width: 45px; background:var(--danger)">+</button>
+                </div>
+                <div id="debtList"></div>
+            </div>
+
+            <div class="card" style="border-top: 3px solid var(--success);">
+                <h3>💎 VARLIKLAR</h3>
+                <div style="display: flex; gap: 5px; margin-bottom:10px;">
                     <input type="text" id="invName" placeholder="Varlık" style="margin:0">
                     <input type="number" id="invVal" placeholder="₺" style="margin:0; width: 80px;">
-                    <button onclick="addInvestment()" style="width: 50px; background:var(--success)">+</button>
+                    <button onclick="addInvestment()" style="width: 45px; background:var(--success)">+</button>
                 </div>
-                <div id="investmentList" style="margin-top:10px"></div>
-            </div>
-
-            <div class="card">
-                <h3>📉 AKTİF BORÇLAR</h3>
-                <div style="display: flex; gap: 5px;">
-                    <input type="text" id="debtName" placeholder="Borç" style="margin:0">
-                    <input type="number" id="debtAmt" placeholder="₺" style="margin:0; width: 80px;">
-                    <button onclick="addDebt()" style="width: 50px; background:var(--danger)">+</button>
-                </div>
-                <div id="debtList" style="margin-top:10px"></div>
-            </div>
-
-            <div class="card">
-                <h3>🔮 5 YILLIK PROJEKSİYON</h3>
-                <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 11px; color: var(--text-dim);">Reel Alım Gücü Tahmini</div>
-                    <div id="proj5" style="font-size: 22px; font-weight: bold; color: var(--info); margin-top: 5px;">0 ₺</div>
-                </div>
+                <div id="investmentList"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem("cfo_final_open")) || {
+    let db = JSON.parse(localStorage.getItem("cfo_v3_logic")) || {
         transactions: [],
         categories: ["Maaş", "Market", "Kira", "Fatura", "Eğlence"],
-        investments: [], debts: []
+        investments: [],
+        debts: []
     };
+
     let chart;
+    function save() { localStorage.setItem("cfo_v3_logic", JSON.stringify(db)); }
 
-    function save() { localStorage.setItem("cfo_final_open", JSON.stringify(db)); }
-
-    function addCategory() {
-        const name = document.getElementById('newCatName').value.trim();
-        if(name && !db.categories.includes(name)) { db.categories.push(name); document.getElementById('newCatName').value = ""; save(); render(); }
+    function addDebt() {
+        const name = document.getElementById('debtName').value.trim();
+        const amt = Number(document.getElementById('debtAmt').value);
+        if(name && amt) {
+            db.debts.push({ id: Date.now(), name, total: amt, remaining: amt });
+            render(); save();
+            document.getElementById('debtName').value = ""; document.getElementById('debtAmt').value = "";
+        }
     }
-    function removeCategory(name) {
-        if(confirm(`'${name}' silinsin mi?`)) { db.categories = db.categories.filter(c => c !== name); save(); render(); }
+
+    function addInvestment() {
+        const name = document.getElementById('invName').value.trim();
+        const val = Number(document.getElementById('invVal').value);
+        if(name && val) { db.investments.push({ id: Date.now(), name, val }); render(); save(); }
     }
 
     function addTransaction() {
         const amt = Number(document.getElementById('amount').value);
         const cat = document.getElementById('categorySelect').value;
         const type = document.getElementById('type').value;
-        const nwType = document.getElementById('needWantSelect').value;
         const date = document.getElementById('date').value;
         const note = document.getElementById('note').value;
-        if(!amt || !date) return alert("Hata: Tutar ve tarih girin.");
-        db.transactions.unshift({ id: Date.now(), amt, cat, type, nwType, date, note }); save(); render();
-        document.getElementById('amount').value = ""; document.getElementById('note').value = "";
-    }
 
-    function addInvestment() {
-        const name = document.getElementById('invName').value;
-        const val = Number(document.getElementById('invVal').value);
-        if(name && val) { db.investments.push({ id: Date.now(), name, val }); save(); render(); }
-    }
-    function addDebt() {
-        const name = document.getElementById('debtName').value;
-        const amt = Number(document.getElementById('debtAmt').value);
-        if(name && amt) { db.debts.push({ id: Date.now(), name, amt }); save(); render(); }
-    }
-    function deleteItem(list, id) { db[list] = db[list].filter(item => item.id !== id); save(); render(); }
+        if(!amt || !date) return alert("Hata: Tutar ve tarih gerekli.");
 
-    function render() {
-        document.getElementById('categorySelect').innerHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-        document.getElementById('categoryTags').innerHTML = db.categories.map(c => `<div style="background:var(--border); padding:3px 8px; border-radius:15px; font-size:10px; margin:2px;">${c} <span onclick="removeCategory('${c}')" style="cursor:pointer; color:var(--danger)">×</span></div>`).join('');
-
-        let inc = 0, exp = 0, invT = 0, debtT = 0, n = 0, w = 0, s = 0;
-        let cats = {};
-
-        const hList = document.getElementById('historyList'); hList.innerHTML = "";
-        db.transactions.forEach((t, i) => {
-            if(t.type === 'income') inc += t.amt;
-            else { 
-                exp += t.amt; cats[t.cat] = (cats[t.cat] || 0) + t.amt;
-                if(t.nwType === 'need') n += t.amt; else if(t.nwType === 'want') w += t.amt; else s += t.amt;
-            }
-            if(i < 10) hList.innerHTML += `<div class="list-item"><div><b>${t.cat}</b><br><small>${t.date}</small></div><div style="display:flex; align-items:center"><span class="val-${t.type==='income'?'inc':'exp'}">${t.type==='income'?'+':'-'}${t.amt.toLocaleString()} ₺</span><span onclick="deleteItem('transactions', ${t.id})" style="cursor:pointer; margin-left:10px; opacity:0.3">×</span></div></div>`;
-        });
-
-        const iList = document.getElementById('investmentList'); iList.innerHTML = "";
-        db.investments.forEach(i => { invT += i.val; iList.innerHTML += `<div class="list-item"><span>${i.name}</span><span class="val-inc">${i.val.toLocaleString()} ₺</span></div>`; });
-
-        const dList = document.getElementById('debtList'); dList.innerHTML = "";
-        db.debts.forEach(d => { debtT += d.amt; dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="val-exp">${d.amt.toLocaleString()} ₺</span></div>`; });
-
-        const net = (inc + invT) - (exp + debtT);
-        document.getElementById('netWorthDisplay').textContent = net.toLocaleString() + " ₺";
-        document.getElementById('totalAssets').textContent = (inc + invT).toLocaleString() + " ₺";
-        document.getElementById('totalLiabilities').textContent = (exp + debtT).toLocaleString() + " ₺";
-
-        let totalR = n + w + s;
-        if(totalR > 0) {
-            let pN = Math.round((n/totalR)*100), pW = Math.round((w/totalR)*100), pS = Math.round((s/totalR)*100);
-            document.getElementById('barNeed').style.width = pN+"%"; document.getElementById('percNeed').textContent = "%"+pN;
-            document.getElementById('barWant').style.width = pW+"%"; document.getElementById('percWant').textContent = "%"+pW;
-            document.getElementById('barSave').style.width = pS+"%"; document.getElementById('percSave').textContent = "%"+pS;
+        // Borçtan Düşme Mantığı
+        if(type === 'expense' && cat.startsWith("BORÇ: ")) {
+            const dName = cat.replace("BORÇ: ", "");
+            const idx = db.debts.findIndex(d => d.name === dName);
+            if(idx !== -1) db.debts[idx].remaining -= amt;
         }
 
-        if(db.transactions.length > 0) document.getElementById('badgeStart').classList.add('active');
-        if(net >= 10000) document.getElementById('badgeSaver').classList.add('active');
-        if(invT > 0) document.getElementById('badgeInvestor').classList.add('active');
-        if(debtT === 0 && db.transactions.length > 3) document.getElementById('badgeFree').classList.add('active');
+        db.transactions.unshift({ id: Date.now(), amt, cat, type, date, note });
+        render(); save();
+        document.getElementById('amount').value = "";
+    }
 
-        let monthlyS = inc - exp;
-        document.getElementById('proj5').textContent = monthlyS > 0 ? (net + (monthlyS * 60) * 0.5).toLocaleString(undefined, {maximumFractionDigits:0}) + " ₺" : "0 ₺";
+    function render() {
+        // Kategorileri güncelle (Borçları içine dahil et)
+        const catSelect = document.getElementById('categorySelect');
+        let catHTML = db.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        let debtCats = db.debts.map(d => `<option value="BORÇ: ${d.name}">Borç Ödeme: ${d.name}</option>`).join('');
+        catSelect.innerHTML = catHTML + `<optgroup label="Borçlar">` + debtCats + `</optgroup>`;
 
-        updateChart(cats);
-        document.getElementById('aiAdvice').textContent = monthlyS > 0 ? "Nakit akışınız pozitif, yatırıma ağırlık verin." : "Giderleriniz gelirinizi aşıyor, tasarruf yapmalısınız.";
+        let income = 0, expense = 0, debtRem = 0, invTotal = 0, debtPaymentTotal = 0;
+        let catData = {};
+
+        // Borç Render
+        const dList = document.getElementById('debtList'); dList.innerHTML = "";
+        db.debts.forEach(d => {
+            debtRem += d.remaining;
+            dList.innerHTML += `<div class="list-item"><span>${d.name}</span><span class="${d.remaining <= 0 ? 'val-inc' : 'val-exp'}">${d.remaining.toLocaleString()} ₺</span></div>`;
+        });
+
+        // İşlemler ve Kategori Grafiği Hazırlığı
+        const hList = document.getElementById('historyList'); hList.innerHTML = "";
+        db.transactions.forEach(t => {
+            if(t.type === 'income') income += t.amt;
+            else {
+                expense += t.amt;
+                catData[t.cat] = (catData[t.cat] || 0) + t.amt;
+                if(t.cat.startsWith("BORÇ: ")) debtPaymentTotal += t.amt;
+            }
+            hList.innerHTML += `<div class="list-item"><div><b>${t.cat}</b><br><small>${t.date}</small></div><span class="val-${t.type==='income'?'inc':'exp'}">${t.amt.toLocaleString()} ₺</span></div>`;
+        });
+
+        // Varlıklar
+        const iList = document.getElementById('investmentList'); iList.innerHTML = "";
+        db.investments.forEach(i => {
+            invTotal += i.val;
+            iList.innerHTML += `<div class="list-item"><span>${i.name}</span><span class="val-inc">${i.val.toLocaleString()} ₺</span></div>`;
+        });
+
+        const netWorth = (income + invTotal) - (expense + debtRem);
+        document.getElementById('netWorthDisplay').textContent = netWorth.toLocaleString() + " ₺";
+        document.getElementById('assetLiabInfo').innerHTML = `Varlıklar: ${ (income + invTotal).toLocaleString() } ₺ | Borçlar: ${debtRem.toLocaleString()} ₺`;
+
+        updateChart(catData);
+        runDeepAI(income, expense, debtRem, debtPaymentTotal, invTotal);
+    }
+
+    // --- GERÇEKÇİ ANALİZ MOTORU ---
+    function runDeepAI(inc, exp, dRem, dPay, inv) {
+        const report = document.getElementById('aiReport');
+        let analysis = "";
+
+        if(inc === 0 && exp === 0) return;
+
+        // 1. Nakit Akışı Analizi
+        let flow = inc - exp;
+        if(flow < 0) analysis += `⚠️ <b>Ciddi Nakit Açığı:</b> Bu ay gelirinizden ${Math.abs(flow).toLocaleString()} ₺ daha fazla harcadınız. Acilen "İstek" harcamalarını kısıp bütçeyi dengelemelisiniz. <br><br>`;
+        else analysis += `✅ <b>Pozitif Akış:</b> Harcamalardan sonra elinizde ${flow.toLocaleString()} ₺ kalıyor. <br><br>`;
+
+        // 2. Borç Analizi
+        if(dRem > 0) {
+            let debtRatio = (dPay / inc) * 100;
+            if(inc > 0) {
+                analysis += `🔍 <b>Borç Durumu:</b> Gelirinizin %${debtRatio.toFixed(1)}'ini borç ödemeye ayırıyorsunuz. `;
+                if(debtRatio > 40) analysis += `<span class="ai-alert">Bu oran çok yüksek! Finansal özgürlüğünüz risk altında.</span> `;
+            }
+            
+            if(dPay > 0) {
+                let monthsLeft = Math.ceil(dRem / dPay);
+                analysis += `Mevcut ödeme hızıyla borçlarınız <b>${monthsLeft} ay</b> içinde tamamen bitecek. `;
+            }
+            analysis += "<br><br>";
+        }
+
+        // 3. Yatırım ve Güvenlik Marjı
+        let emergencyFund = inv / (exp || 1);
+        if(inv > 0) {
+            analysis += `💎 <b>Varlık Analizi:</b> Mevcut yatırımlarınız, hiç geliriniz olmasa bile sizi <b>${emergencyFund.toFixed(1)} ay</b> boyunca aynı standartta yaşatabilir. `;
+            if(emergencyFund < 3) analysis += "Acil durum fonunuzu 6 aya tamamlamaya çalışın.";
+        }
+
+        report.innerHTML = analysis || "Verileriniz analiz ediliyor, harcama yaptıkça rapor detaylanacak.";
     }
 
     function updateChart(data) {
         const ctx = document.getElementById('mainChart').getContext('2d');
         if(chart) chart.destroy();
-        chart = new Chart(ctx, { type: 'doughnut', data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#4361ee', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'], borderWidth: 0 }] }, options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: {size: 11} } } } } });
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['#4361ee', '#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
+                    borderWidth: 0
+                }]
+            },
+            options: { plugins: { legend: { display: false } } }
+        });
     }
 
-    function exportJSON() {
-        const blob = new Blob([JSON.stringify(db)], {type: "application/json"});
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "CFO_Yedek.json"; a.click();
-    }
-    function clearAll() { if(confirm("Tüm veriler silinsin mi?")) { localStorage.clear(); location.reload(); } }
-
+    function clearAll() { if(confirm("Tüm kayıtlar silinecek. Emin misiniz?")) { localStorage.clear(); location.reload(); } }
     document.getElementById('date').valueAsDate = new Date();
-    document.getElementById('currentDate').textContent = new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     render();
 </script>
 </body>
