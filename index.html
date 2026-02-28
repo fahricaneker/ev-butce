@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ev Bütçe Pro+</title>
+<title>Ev Bütçe MAX</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body{font-family:Arial;background:#f4f6f9;padding:15px}
@@ -12,19 +12,28 @@ h2{text-align:center}
 input,select,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ddd}
 button{background:#2e86de;color:#fff;border:none}
 button:hover{opacity:.9}
-.list-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
+.list-item{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee;font-size:14px}
 .delete{color:red;cursor:pointer}
 .progress{background:#ddd;border-radius:20px;height:15px;margin-top:10px}
 .progress-bar{height:100%;background:#27ae60;border-radius:20px;width:0%}
-.summary p{margin:5px 0}
+.alert{background:#ffeaa7;padding:10px;border-radius:8px;margin-top:10px}
 .small{font-size:12px;color:#666}
+.tab{display:flex;gap:5px;margin-top:10px}
+.tab button{flex:1}
+.hidden{display:none}
 </style>
 </head>
 <body>
 
-<h2>Ev Bütçe Pro+</h2>
+<h2>Ev Bütçe MAX</h2>
 
-<div class="card">
+<div class="tab">
+<button onclick="showTab('islem')">İşlem</button>
+<button onclick="showTab('fatura')">Fatura</button>
+<button onclick="showTab('rapor')">Rapor</button>
+</div>
+
+<div id="islem" class="card">
 <input id="amount" type="number" placeholder="Tutar">
 <select id="type">
 <option value="income">Gelir</option>
@@ -33,89 +42,87 @@ button:hover{opacity:.9}
 <input id="category" placeholder="Kategori">
 <input id="date" type="date">
 <button onclick="addTransaction()">Ekle</button>
-</div>
-
-<div class="card summary">
-<p>Toplam Gelir: <span id="income">0</span> ₺</p>
-<p>Toplam Gider: <span id="expense">0</span> ₺</p>
-<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
-</div>
-
-<div class="card">
-<input id="goal" type="number" placeholder="Birikim Hedefi">
-<button onclick="setGoal()">Hedef Belirle</button>
-<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
-<p>Hedef: <span id="goalPercent">0</span>%</p>
-</div>
-
-<div class="card">
-<select id="monthFilter" onchange="updateUI()">
-<option value="all">Tüm Aylar</option>
-</select>
-<button onclick="exportCSV()">CSV Dışa Aktar</button>
-</div>
-
-<div class="card">
-<canvas id="chart"></canvas>
-</div>
-
-<div class="card">
-<h3>İşlemler</h3>
 <div id="list"></div>
 </div>
 
+<div id="fatura" class="card hidden">
+<input id="billName" placeholder="Fatura Adı">
+<input id="billDate" type="date">
+<button onclick="addBill()">Fatura Ekle</button>
+<div id="billList"></div>
+<div id="billAlert"></div>
+</div>
+
+<div id="rapor" class="card hidden">
+<p>Gelir: <span id="income">0</span> ₺</p>
+<p>Gider: <span id="expense">0</span> ₺</p>
+<p><b>Kalan: <span id="balance">0</span> ₺</b></p>
+
+<input id="goal" type="number" placeholder="Birikim Hedefi">
+<button onclick="setGoal()">Hedef</button>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+<p>İlerleme: <span id="goalPercent">0</span>%</p>
+
+<canvas id="pieChart"></canvas>
+<canvas id="barChart"></canvas>
+
+<button onclick="exportCSV()">CSV</button>
+<button onclick="backupJSON()">Yedek Al</button>
+<input type="file" onchange="restoreJSON(event)">
+</div>
+
 <script>
-let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
-let goal = Number(localStorage.getItem("goal")) || 0;
-let chart;
+let transactions=JSON.parse(localStorage.getItem("transactions"))||[];
+let bills=JSON.parse(localStorage.getItem("bills"))||[];
+let goal=Number(localStorage.getItem("goal"))||0;
+let pie,bar;
 
 function save(){
 localStorage.setItem("transactions",JSON.stringify(transactions));
+localStorage.setItem("bills",JSON.stringify(bills));
 localStorage.setItem("goal",goal);
 }
 
-function addTransaction(){
-const amount=Number(amountInput.value);
-const type=typeInput.value;
-const category=categoryInput.value;
-const date=dateInput.value;
-if(!amount||!category||!date)return;
-transactions.push({amount,type,category,date});
-save();
+function showTab(id){
+document.querySelectorAll(".card").forEach(c=>c.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
 updateUI();
-amountInput.value="";
-categoryInput.value="";
+}
+
+function addTransaction(){
+const amount=Number(amount.value);
+if(!amount||!category.value||!date.value)return;
+transactions.push({amount,type:type.value,category:category.value,date:date.value});
+save();updateUI();
+amount.value="";category.value="";
 }
 
 function deleteTransaction(i){
-transactions.splice(i,1);
-save();
-updateUI();
+transactions.splice(i,1);save();updateUI();
 }
 
-function setGoal(){
-goal=Number(goalInput.value);
-save();
-updateUI();
+function addBill(){
+if(!billName.value||!billDate.value)return;
+bills.push({name:billName.value,date:billDate.value});
+save();updateUI();
+billName.value="";
 }
 
-function populateMonths(){
-const select=monthFilter;
-let months=new Set();
-transactions.forEach(t=>{
-months.add(t.date.slice(0,7));
-});
-select.innerHTML='<option value="all">Tüm Aylar</option>';
-months.forEach(m=>{
-select.innerHTML+=`<option value="${m}">${m}</option>`;
+function checkBills(){
+let today=new Date().toISOString().slice(0,10);
+billAlert.innerHTML="";
+bills.forEach(b=>{
+if(b.date===today){
+billAlert.innerHTML+=`<div class="alert">Bugün ${b.name} faturası var!</div>`;
+}
 });
 }
+
+function setGoal(){goal=Number(goalInput.value);save();updateUI();}
 
 function exportCSV(){
 let csv="Tarih,Kategori,Tip,Tutar\n";
-transactions.forEach(t=>{
-csv+=`${t.date},${t.category},${t.type},${t.amount}\n`;
-});
+transactions.forEach(t=>csv+=`${t.date},${t.category},${t.type},${t.amount}\n`);
 let blob=new Blob([csv],{type:"text/csv"});
 let a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
@@ -123,59 +130,88 @@ a.download="butce.csv";
 a.click();
 }
 
+function backupJSON(){
+let data={transactions,bills,goal};
+let blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="yedek.json";
+a.click();
+}
+
+function restoreJSON(e){
+let file=e.target.files[0];
+let reader=new FileReader();
+reader.onload=function(){
+let data=JSON.parse(reader.result);
+transactions=data.transactions||[];
+bills=data.bills||[];
+goal=data.goal||0;
+save();updateUI();
+}
+reader.readAsText(file);
+}
+
 function updateUI(){
-populateMonths();
-let filter=monthFilter.value;
 let income=0,expense=0;
 list.innerHTML="";
-let filtered=transactions.filter(t=>{
-return filter==="all"||t.date.startsWith(filter);
-});
-filtered.forEach((t,i)=>{
-if(t.type==="income")income+=t.amount;
-else expense+=t.amount;
-list.innerHTML+=`
-<div class="list-item">
-<span>${t.date} | ${t.category} - ${t.amount} ₺</span>
+transactions.forEach((t,i)=>{
+if(t.type==="income")income+=t.amount;else expense+=t.amount;
+list.innerHTML+=`<div class="list-item">
+<span>${t.date} | ${t.category} - ${t.amount}₺</span>
 <span class="delete" onclick="deleteTransaction(${i})">Sil</span>
 </div>`;
 });
 incomeSpan.textContent=income;
 expenseSpan.textContent=expense;
 balanceSpan.textContent=income-expense;
+
 let percent=goal?((income-expense)/goal)*100:0;
 percent=Math.max(0,Math.min(100,percent));
 progressBar.style.width=percent+"%";
 goalPercent.textContent=Math.round(percent);
-drawChart(income,expense);
+
+drawCharts();
+checkBills();
 }
 
-function drawChart(income,expense){
-if(chart)chart.destroy();
-chart=new Chart(document.getElementById("chart"),{
-type:"doughnut",
-data:{
-labels:["Gelir","Gider"],
-datasets:[{
-data:[income,expense],
-backgroundColor:["#27ae60","#e74c3c"]
-}]
-}
+function drawCharts(){
+if(pie)pie.destroy();
+if(bar)bar.destroy();
+
+let income=transactions.filter(t=>t.type==="income").reduce((a,b)=>a+b.amount,0);
+let expense=transactions.filter(t=>t.type==="expense").reduce((a,b)=>a+b.amount,0);
+
+pie=new Chart(pieChart,{type:"doughnut",
+data:{labels:["Gelir","Gider"],
+datasets:[{data:[income,expense],backgroundColor:["#27ae60","#e74c3c"]}]}});
+
+let categories={};
+transactions.forEach(t=>{
+if(!categories[t.category])categories[t.category]=0;
+categories[t.category]+=t.amount;
 });
+bar=new Chart(barChart,{type:"bar",
+data:{labels:Object.keys(categories),
+datasets:[{data:Object.values(categories),backgroundColor:"#2e86de"}]}});
 }
 
-const amountInput=document.getElementById("amount");
-const typeInput=document.getElementById("type");
-const categoryInput=document.getElementById("category");
-const dateInput=document.getElementById("date");
-const goalInput=document.getElementById("goal");
+const amount=document.getElementById("amount");
+const type=document.getElementById("type");
+const category=document.getElementById("category");
+const date=document.getElementById("date");
+const billName=document.getElementById("billName");
+const billDate=document.getElementById("billDate");
+const billAlert=document.getElementById("billAlert");
+const list=document.getElementById("list");
 const incomeSpan=document.getElementById("income");
 const expenseSpan=document.getElementById("expense");
 const balanceSpan=document.getElementById("balance");
 const progressBar=document.getElementById("progressBar");
 const goalPercent=document.getElementById("goalPercent");
-const list=document.getElementById("list");
-const monthFilter=document.getElementById("monthFilter");
+const goalInput=document.getElementById("goal");
+const pieChart=document.getElementById("pieChart");
+const barChart=document.getElementById("barChart");
 
 updateUI();
 </script>
